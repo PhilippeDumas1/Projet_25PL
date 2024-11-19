@@ -15,8 +15,8 @@ if(MSVC)
     )
 endif()
 
-add_executable (traffic_light "traffic_light.cpp")
-target_link_libraries(traffic_light sfml-graphics sfml-window)
+add_executable (Feucircu "Feucircu.cpp")
+target_link_libraries(Feucircu sfml-graphics sfml-window)
 
 find_package (Threads)
 find_package(SFML 2.5 COMPONENTS window system graphics REQUIRED)
