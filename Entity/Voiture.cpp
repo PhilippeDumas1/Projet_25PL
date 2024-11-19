@@ -1,3 +1,4 @@
+#include "Voiture.hpp"
 #include <iostream> // std::cout
 #include <thread>   // std::thread, std::this_thread::yield
 #include <SFML/Window.hpp>
@@ -41,5 +42,13 @@ public:
     }
     float getPositionY() const {
         return position_y_;
+    }
+
+    void runCar(Voiture& voiture, Traffic_light& traffic_light, std::stop_token stop_token) {
+        while (!stop_token.stop_requested()) {
+            voiture.checkTrafficLight(traffic_light);
+            voiture.move();
+            std::this_thread::sleep_for(1s);
+        }
     }
 };
