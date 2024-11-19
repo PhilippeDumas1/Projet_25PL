@@ -8,8 +8,8 @@
 
 static const sf::Color Orange(255, 165, 0);
 
-const auto time_transit = 3s;
-const auto time_waiting = 8s;
+const auto time_transit = 3;
+const auto time_waiting = 8;
 
 enum class Traffic_color
 {
@@ -17,8 +17,6 @@ enum class Traffic_color
     orange = 1,
     red = 2
 };
-
-Traffic_color operator++(Traffic_color& traffic_color){}
 
 class Traffic_light
 {

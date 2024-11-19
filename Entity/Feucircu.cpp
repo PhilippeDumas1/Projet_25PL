@@ -1,10 +1,10 @@
+#include "Feucircu.hpp"
 #include <iostream>
 #include <thread>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-#include "Feucircu.hpp"
-
+using namespace std::chrono_literals;
 
 Traffic_color operator++(Traffic_color& traffic_color)
 {
@@ -15,34 +15,43 @@ Traffic_color operator++(Traffic_color& traffic_color)
         break;
 
     case Traffic_color::green:
-        std::this_thread::sleep_for(time_transit);
+        std::this_thread::sleep_for(std::chrono::seconds(time_transit));
         traffic_color = Traffic_color::orange;
-        std::this_thread::sleep_for(time_transit);
+        std::this_thread::sleep_for(std::chrono::seconds(time_transit));
         traffic_color = Traffic_color::red;
     }
     return traffic_color;
 }
 
-class Traffic_light
+Traffic_light::Traffic_light(const Traffic_color& traffic_color)
+	: traffic_color_(traffic_color)
 {
-private:
-    Traffic_color traffic_color_;
+}
 
-public:
-    explicit Traffic_light(const Traffic_color& traffic_color) : traffic_color_{ traffic_color } {}
-    void operator++()
-    {
-        ++traffic_color_;
-    }
-    void set_traffic_color(const Traffic_color& traffic_color)
-    {
-        traffic_color_ = traffic_color;
-    }
-    const Traffic_color& get_traffic_color() const
-    {
-        return traffic_color_;
-    }
-};
+void Traffic_light::operator++()
+{
+	switch (traffic_color_)
+	{
+	case Traffic_color::red:
+		traffic_color_ = Traffic_color::green;
+		break;
+	case Traffic_color::green:
+		std::this_thread::sleep_for(std::chrono::seconds(time_transit));
+		traffic_color_ = Traffic_color::orange;
+		std::this_thread::sleep_for(std::chrono::seconds(time_transit));
+		traffic_color_ = Traffic_color::red;
+	}
+}
+
+void Traffic_light::set_traffic_color(const Traffic_color& traffic_color)
+{
+	traffic_color_ = traffic_color;
+}
+
+const Traffic_color& Traffic_light::get_traffic_color() const
+{
+	return traffic_color_;
+}
 
 const sf::Color& get_SFML_color(const Traffic_light& traffic_light)
 {
@@ -80,7 +89,8 @@ void run_traffic_light(Traffic_light& traffic_light_master, Traffic_light& traff
     traffic_light_slave.set_traffic_color(Traffic_color::red);
     while (!stop_token.stop_requested())
     {
-        std::this_thread::sleep_for(time_waiting);
+
+        std::this_thread::sleep_for(std::chrono::seconds(time_waiting));
         if (traffic_light_master.get_traffic_color() == Traffic_color::green)
         {
             ++traffic_light_master;
