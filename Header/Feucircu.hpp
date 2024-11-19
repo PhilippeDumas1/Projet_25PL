@@ -6,7 +6,17 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-enum class Traffic_color{};
+static const sf::Color Orange(255, 165, 0);
+
+const auto time_transit = 3s;
+const auto time_waiting = 8s;
+
+enum class Traffic_color
+{
+    green = 0,
+    orange = 1,
+    red = 2
+};
 
 Traffic_color operator++(Traffic_color& traffic_color){}
 
