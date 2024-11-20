@@ -1,31 +1,52 @@
 #ifndef VOITURE_HPP
 #define VOITURE_HPP
 
-#include <iostream>
-#include <thread>
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
-
-class Voiture {
+class Voiture
+{
 private:
-    int id_; // Identifiant unique pour chaque voiture
-    float position_x_; // Position de la voiture sur l'axe x
-    float position_y_; // Position de la voiture sur l'axe y
-    float speed_; // Vitesse de la voiture
-    bool stopped_; // État de la voiture 
+    sf::RectangleShape shape_;
+    float speed_;
+    sf::Vector2f position_;
 
 public:
-    Voiture(int id, float x, float y, float speed);
+    Voiture(float x, float y, float speed = 5.0f)
+        : speed_(speed)
+    {
+        shape_.setSize(sf::Vector2f(50.0f, 25.0f));  // Taille de la voiture
+        shape_.setFillColor(sf::Color::Blue);        // Couleur de la voiture
+        shape_.setPosition(x, y);
+    }
 
-    void move();
+    void move()
+    {
+        position_.x += speed_;
+        shape_.setPosition(position_);
+    }
 
-    void checkTrafficLight(Traffic_light& traffic_light);
+    void render(sf::RenderWindow& window)
+    {
+        window.draw(shape_);
+    }
 
-    float getPositionX() const;
+    void setPosition(float x, float y)
+    {
+        position_.x = x;
+        position_.y = y;
+        shape_.setPosition(position_);
+    }
 
-    float getPositionY() const;
-
-    void runCar(Voiture& voiture, Traffic_light& traffic_light, std::stop_token stop_token);
+    void run_car(sf::CircleShape& car, Traffic_light& traffic_light, std::stop_token stop_token)
+    {
+        float speed = 2.0f;
+        while (!stop_token.stop_requested())
+        {
+            if (traffic_light.get_traffic_color() == Traffic_color::green)
+            {
+                car.move(speed, 0); // Move the car horizontally
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Control the update rate
+        }
+    }
 };
 
-#endif // VOITURE_HPP
+#endif VOITURE_HPP
