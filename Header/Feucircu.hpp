@@ -22,15 +22,18 @@ class Traffic_light
 {
 private:
     Traffic_color traffic_color_;
+    sf::Vector2f position_;
 
 public:
-    explicit Traffic_light(const Traffic_color& traffic_color);
+    explicit Traffic_light(const Traffic_color& traffic_color, sf::Vector2f position);
 
     void operator++();
 
     void set_traffic_color(const Traffic_color& traffic_color);
 
     const Traffic_color& get_traffic_color() const;
+
+    const sf::Vector2f& get_position() const;
 };
 
 const sf::Color& get_SFML_color(const Traffic_light& traffic_light);

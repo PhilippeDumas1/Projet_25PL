@@ -84,15 +84,20 @@ sf::Vector2f Voiture::getPosition() const
     return position_;
 }
 
-void Voiture::run_car(sf::CircleShape& car, Traffic_light& traffic_light, std::stop_token stop_token)
-{
+void Voiture::run_car(sf::CircleShape& car, Traffic_light& traffic_light, std::stop_token stop_token) {
     float speed = 2.0f;
-    while (!stop_token.stop_requested())
-    {
-        if (traffic_light.get_traffic_color() == Traffic_color::green)
-        {
-            car.move(speed, 0); // Move the car horizontally
+    bool has_passed_light = false;
+
+    while (!stop_token.stop_requested()) {
+        if (!has_passed_light && car.getPosition().x < traffic_light.get_position().x) {
+            if (traffic_light.get_traffic_color() == Traffic_color::green) {
+                car.move(speed, 0);
+            }
         }
-        std::this_thread::sleep_for(50ms); // Control the update rate
+        else {
+            has_passed_light = true; // La voiture ne sera plus affectée par le feu
+            car.move(speed, 0);
+        }
+        std::this_thread::sleep_for(50ms);
     }
 }

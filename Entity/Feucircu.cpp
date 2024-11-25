@@ -23,10 +23,8 @@ Traffic_color operator++(Traffic_color& traffic_color)
     return traffic_color;
 }
 
-Traffic_light::Traffic_light(const Traffic_color& traffic_color)
-	: traffic_color_(traffic_color)
-{
-}
+Traffic_light::Traffic_light(const Traffic_color& traffic_color, sf::Vector2f position)
+    : traffic_color_(traffic_color), position_(position) {}
 
 void Traffic_light::operator++()
 {
@@ -51,6 +49,10 @@ void Traffic_light::set_traffic_color(const Traffic_color& traffic_color)
 const Traffic_color& Traffic_light::get_traffic_color() const
 {
 	return traffic_color_;
+}
+
+const sf::Vector2f& Traffic_light::get_position() const {
+    return position_;
 }
 
 const sf::Color& get_SFML_color(const Traffic_light& traffic_light)

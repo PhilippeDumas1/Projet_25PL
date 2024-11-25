@@ -7,23 +7,31 @@
 #include "Voiture.hpp"
 
 void run_car(sf::CircleShape & car, Traffic_light & traffic_light, std::stop_token stop_token){
-    float speed = 2.0f;
+    float speed = 1.0f;
     while (!stop_token.stop_requested()){
-        if (traffic_light.get_traffic_color() == Traffic_color::green)
-        {
-            if (traffic_light.get_traffic_color() == Traffic_color::orange) {
-				car.move(speed, 5);
-            }
+        sf::Vector2f car_position = car.getPosition();
+        if (traffic_light.get_traffic_color() == Traffic_color::green) {
             car.move(speed, 0);
         }
+        else if (traffic_light.get_traffic_color() == Traffic_color::orange) {
+            car.move(speed, 0); 
+        }
+        else if (traffic_light.get_traffic_color() == Traffic_color::red) {
+            float traffic_light_position = traffic_light.get_position().x; 
+
+            if (car_position.x + car.getRadius() > traffic_light_position) {
+                car.move(speed, 0);
+            }
+        }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
 
 int main(){
     std::stop_source stopping;
-    Traffic_light traffic_light_master{ Traffic_color::red };
-    Traffic_light traffic_light_slave{ Traffic_color::green };
+    Traffic_light traffic_light_master(Traffic_color::red, sf::Vector2f(300.0f, 400.0f));
+    Traffic_light traffic_light_slave(Traffic_color::green, sf::Vector2f(600.0f, 400.0f));
     std::jthread thread_traffic_light(run_traffic_light, std::ref(traffic_light_master), std::ref(traffic_light_slave), stopping.get_token());
     
     std::jthread write_traffic_light(print_traffic_light, std::ref(traffic_light_master), std::ref(traffic_light_slave), stopping.get_token());
