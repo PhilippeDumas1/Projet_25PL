@@ -61,7 +61,7 @@ void update_logic(vector<sf::CircleShape>& cars, vector<Traffic_light>& traffic_
 }
 
 int main() {
-    float d1 = 400, d2 = 350, d3 = 300, size = 1000;
+    float d1 = 400, d2 = 350, d3 = 300, size = 1000, radius = 10;
 
     Traffic_light traffic_light_master{ Traffic_color::red, sf::Vector2f(d2, d3 + (d1 / 2)) };
     Traffic_light traffic_light_slave{ Traffic_color::green, sf::Vector2f(d2 + (d3 / 2), d3 + d1) };
@@ -94,9 +94,10 @@ int main() {
 
 
     // Fenêtre SFML
-    std::jthread thread_traffic_light(run_traffic_light, std::ref(traffic_light_master), std::ref(traffic_light_slave), stopping.get_token());
+    std::stop_source stopping;
+    std::jthread thread_traffic_light(run_traffic_light,std::ref(traffic_light_master),std::ref(traffic_light_slave),stopping.get_token());
 
-    //std::jthread write_traffic_light(print_traffic_light, std::ref(traffic_light_master), std::ref(traffic_light_slave), stopping.get_token());
+    std::jthread write_traffic_light(print_traffic_light, std::ref(traffic_light_master), std::ref(traffic_light_slave), stopping.get_token());
 
     sf::RenderWindow window(sf::VideoMode(1000, 1000), "Traffic Simulation");
 
@@ -139,13 +140,60 @@ int main() {
         window.draw(lineV1, 2, sf::Lines);
         window.draw(lineFGB, 2, sf::Lines);
 
-        // Dessiner les feux
-        for (auto& light : traffic_lights) {
-            sf::CircleShape light_circle(10);
-            light_circle.setFillColor(get_SFML_color(light));
-            light_circle.setPosition(light.get_position());
-            window.draw(light_circle);
-        }
+        //Update traffic lights
+        sf::CircleShape circle1A(radius);
+        circle1A.setFillColor(get_SFML_color(traffic_light_master));
+        circle1A.setOrigin(circle1A.getRadius() / 2, circle1A.getRadius() / 2);
+        circle1A.setPosition(d2, d3 + (d1 / 2));
+
+        sf::CircleShape circle1B(radius);
+        circle1B.setFillColor(get_SFML_color(traffic_light_master));
+        circle1B.setOrigin(circle1B.getRadius() / 2, circle1B.getRadius() / 2);
+        circle1B.setPosition(d2, d3 + d1);
+
+
+        sf::CircleShape circle2A(radius);
+        circle2A.setFillColor(get_SFML_color(traffic_light_slave));
+        circle2A.setOrigin(circle2A.getRadius() / 2, circle2A.getRadius() / 2);
+        circle2A.setPosition(d2 + (d3 / 2), d3 + d1);
+
+        sf::CircleShape circle2B(radius);
+        circle2B.setFillColor(get_SFML_color(traffic_light_slave));
+        circle2B.setOrigin(circle2B.getRadius() / 2, circle2B.getRadius() / 2);
+        circle2B.setPosition(d2 + d3, d3 + d1);
+
+
+        sf::CircleShape circle1C(radius);
+        circle1C.setFillColor(get_SFML_color(traffic_light_master));
+        circle1C.setOrigin(circle1C.getRadius() / 2, circle1C.getRadius() / 2);
+        circle1C.setPosition(d2 + d3, d3 + (d1 / 2));
+
+        sf::CircleShape circle2C(radius);
+        circle2C.setFillColor(get_SFML_color(traffic_light_master));
+        circle2C.setOrigin(circle2C.getRadius() / 2, circle2C.getRadius() / 2);
+        circle2C.setPosition(d2 + d3, d3);
+
+        sf::CircleShape circle1D(radius);
+        circle1D.setFillColor(get_SFML_color(traffic_light_slave));
+        circle1D.setOrigin(circle1D.getRadius() / 2, circle1D.getRadius() / 2);
+        circle1D.setPosition(d2, d3);
+
+        sf::CircleShape circle2D(radius);
+        circle2D.setFillColor(get_SFML_color(traffic_light_slave));
+        circle2D.setOrigin(circle2D.getRadius() / 2, circle2D.getRadius() / 2);
+        circle2D.setPosition(d2 + (d3 / 2), d3);
+
+        window.draw(circle1A);
+        window.draw(circle1B);
+
+        window.draw(circle2A);
+        window.draw(circle2B);
+
+        window.draw(circle1C);
+        window.draw(circle2C);
+
+        window.draw(circle1D);
+        window.draw(circle2D);
 
         // Dessiner les voitures
         for (auto& car : cars) {
