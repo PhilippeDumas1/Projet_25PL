@@ -26,8 +26,14 @@ public:
     // Déplace la voiture
     void move()
     {
-        position_.x += speed_;
-        shape_.setPosition(position_);
+        if (position_.y == 0) {
+            position_.x += speed_;
+            shape_.setPosition(position_);
+        }
+        else {
+            position_.y += speed_;
+            shape_.setPosition(position_);
+        }
     }
 
     // Affiche la voiture dans la fenêtre

@@ -16,49 +16,45 @@ bool are_cars_close(const sf::CircleShape& car1, const sf::CircleShape& car2, fl
     return distance < threshold;
 }
 
-void update_logic(vector<sf::CircleShape>& cars, vector<Traffic_light>& traffic_lights, bool& running) {
+void update_logic(vector<sf::CircleShape>& cars, Traffic_light& traffic_light_master, bool& running) {
     float speed = 1.0f;
 
     while (running) {
         for (auto& car : cars) {
             sf::Vector2f car_position = car.getPosition();
-
-            Traffic_light* closest_traffic_light = nullptr;
-            float min_distance = std::numeric_limits<float>::max();
-
-            for (auto& light : traffic_lights) {
-                float distance = std::abs(light.get_position().x - car_position.x);
-                if (distance < min_distance && car_position.x <= light.get_position().x) {
-                    min_distance = distance;
-                    closest_traffic_light = &light;
-                }
-            }
-
-            if (closest_traffic_light) {
-                if (closest_traffic_light->get_traffic_color() == Traffic_color::red &&
-                    car_position.x + car.getRadius() > closest_traffic_light->get_position().x) {
-                    continue;
-                }
-            }
-
             bool should_stop = false;
-            for (auto& other_car : cars) {
-                if (&car != &other_car && are_cars_close(car, other_car)) {
-                    should_stop = true;
-                    break;
-                }
+
+            // Position du feu circle1A
+            sf::Vector2f traffic_light_position = traffic_light_master.get_position();
+
+            // Vérifier si le feu est rouge et si la voiture est proche de circle1A
+            if (traffic_light_master.get_traffic_color() == Traffic_color::red &&
+                car_position.x + car.getRadius() > traffic_light_position.x &&
+                car_position.x < traffic_light_position.x) {
+                should_stop = true;
             }
 
+            /*/for (auto& other_car : cars) {
+                 if (&car != &other_car && are_cars_close(car, other_car)) {
+                     should_stop = true;
+                     break;
+                 }
+             }*/
+
+            // Si on doit s'arrêter, on saute au prochain cycle
             if (should_stop) {
                 continue;
             }
-
-            car.move(speed, 0);
+            else {
+                car.move(speed, 0);
+            }
         }
 
+        // Pause entre chaque mise à jour
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
+
 
 int main() {
     float d1 = 400, d2 = 350, d3 = 300, size = 1000, radius = 10;
@@ -84,9 +80,9 @@ int main() {
     vector<sf::CircleShape> cars;
     sf::CircleShape car1(15), car2(15);
     car1.setFillColor(sf::Color::Blue);
-    car1.setPosition(0, d3);
+    car1.setPosition(0, d3 + (d1 / 2) + (d1 / 4));
     car2.setFillColor(sf::Color::Red);
-    car2.setPosition(50, d3);
+    car2.setPosition(d3 + (d1 / 2) + (d1 / 4), 0);
 
     cars.push_back(car1);
     cars.push_back(car2);
@@ -112,11 +108,14 @@ int main() {
 
     sf::Vertex lineV1[] = { sf::Vertex(sf::Vector2f(0, d3 + (d1 / 2) + (d1 / 4)), sf::Color::Magenta), sf::Vertex(sf::Vector2f(size, d3 + (d1 / 2) + (d1 / 4)), sf::Color::Magenta) };
 
+    sf::Vertex lineV2[] = { sf::Vertex(sf::Vector2f(d3 + (d1 / 2) + (d1 / 4), 0), sf::Color::Magenta), sf::Vertex(sf::Vector2f(d3 + (d1 / 2) + (d1 / 4), size), sf::Color::Magenta) };
+
+
     sf::Vertex lineFGB[] = { sf::Vertex(sf::Vector2f(d2, d3 + (d1 / 2)), sf::Color::Yellow), sf::Vertex(sf::Vector2f(d2, d3 + d1), sf::Color::Yellow) };
     bool running = true;
 
     // Thread pour la logique
-    std::thread logic_thread(update_logic, std::ref(cars), std::ref(traffic_lights), std::ref(running));
+    std::thread logic_thread(update_logic, std::ref(cars), std::ref(traffic_light_master), std::ref(running));
 
     while (window.isOpen()) {
         sf::Event event;
@@ -138,6 +137,7 @@ int main() {
         window.draw(line5, 2, sf::Lines);
         window.draw(line6, 2, sf::Lines);
         window.draw(lineV1, 2, sf::Lines);
+        window.draw(lineV2, 2, sf::Lines);
         window.draw(lineFGB, 2, sf::Lines);
 
         //Update traffic lights
@@ -206,4 +206,4 @@ int main() {
     running = false;
     logic_thread.join();
     return 0;
-}
+};
