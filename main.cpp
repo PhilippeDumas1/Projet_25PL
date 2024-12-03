@@ -16,9 +16,8 @@ bool are_cars_close(const sf::CircleShape& car1, const sf::CircleShape& car2, fl
     return distance < threshold;
 }
 
-void update_logic(vector<sf::CircleShape>& cars, Traffic_light& traffic_light_master, bool& running) {
-    float speed = 1.0f;
-
+void update_logic(std::vector<sf::Sprite>& cars, Traffic_light& traffic_light_master, bool& running) {
+    float speed = 2.0f;
     while (running) {
         for (auto& car : cars) {
             sf::Vector2f car_position = car.getPosition();
@@ -29,24 +28,17 @@ void update_logic(vector<sf::CircleShape>& cars, Traffic_light& traffic_light_ma
 
             // Vérifier si le feu est rouge et si la voiture est proche de circle1A
             if (traffic_light_master.get_traffic_color() == Traffic_color::red &&
-                car_position.x + car.getRadius() > traffic_light_position.x &&
+                car_position.x + 50 > traffic_light_position.x && // Ajustez 50 à la largeur de l'image
                 car_position.x < traffic_light_position.x) {
                 should_stop = true;
             }
-
-            /*/for (auto& other_car : cars) {
-                 if (&car != &other_car && are_cars_close(car, other_car)) {
-                     should_stop = true;
-                     break;
-                 }
-             }*/
 
             // Si on doit s'arrêter, on saute au prochain cycle
             if (should_stop) {
                 continue;
             }
             else {
-                car.move(speed, 0);
+                car.move(speed, 0); // Mouvement vers la droite
             }
         }
 
@@ -58,6 +50,17 @@ void update_logic(vector<sf::CircleShape>& cars, Traffic_light& traffic_light_ma
 
 int main() {
     float d1 = 400, d2 = 350, d3 = 300, size = 1000, radius = 10;
+
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("background.png")) {
+        std::cerr << "Erreur : impossible de charger l'image de fond !" << std::endl;
+        return -1;
+    }
+    sf::Sprite backgroundSprite(backgroundTexture);
+    backgroundSprite.setScale(
+        size / backgroundTexture.getSize().x,
+        size / backgroundTexture.getSize().y
+    );
 
     Traffic_light traffic_light_master{ Traffic_color::red, sf::Vector2f(d2, d3 + (d1 / 2)) };
     Traffic_light traffic_light_slave{ Traffic_color::green, sf::Vector2f(d2 + (d3 / 2), d3 + d1) };
@@ -76,12 +79,25 @@ int main() {
     traffic_lights.emplace_back(Traffic_color::green, sf::Vector2f(d2, d3));
     traffic_lights.emplace_back(Traffic_color::green, sf::Vector2f(d2 + (d3 / 2), d3));
 
+
+    sf::Texture carTexture;
+    if (!carTexture.loadFromFile("car.png")) {
+        std::cerr << "Erreur : Impossible de charger l'image car.png" << std::endl;
+        return -1;
+    }
     // Initialisation des voitures
-    vector<sf::CircleShape> cars;
-    sf::CircleShape car1(15), car2(15);
-    car1.setFillColor(sf::Color::Blue);
+    std::vector<sf::Sprite> cars;
+
+    sf::Sprite car1, car2;
+    car1.setTexture(carTexture);
+    car2.setTexture(carTexture);
+
+    // Ajustez la taille ou l'échelle si nécessaire
+    car1.setScale(0.1f, 0.1f); // Par exemple, pour réduire la taille à 10 %
+    car2.setScale(0.1f, 0.1f);
+
+    // Position initiale des voitures
     car1.setPosition(0, d3 + (d1 / 2) + (d1 / 4));
-    car2.setFillColor(sf::Color::Red);
     car2.setPosition(d3 + (d1 / 2) + (d1 / 4), 0);
 
     cars.push_back(car1);
@@ -130,6 +146,7 @@ int main() {
 
         // Dessiner la fenêtre
         window.clear(sf::Color::Black);
+        window.draw(backgroundSprite);
         window.draw(line1, 2, sf::Lines);
         window.draw(line2, 2, sf::Lines);
         window.draw(line3, 2, sf::Lines);
