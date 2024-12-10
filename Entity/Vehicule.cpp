@@ -1,6 +1,7 @@
 #include "Vehicule.hpp"
 #include <cmath>
 #include <iomanip>
+#include <chrono>
 
 const int WINDOW_SIZE_HORIZ = 1000; // ou toute autre valeur appropriée
 const int WINDOW_SIZE_VERTI = 1000;
@@ -19,8 +20,7 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _Veh
     switch (spawn) {
     case DVG:
         switch (_VehiculeType) {
-        case 1: setPos(0, 575);
-            break;
+        case 1: setPos(0, 575); break;
         case 2: // Bus
             _x = 0;
             _y = 625;
@@ -38,7 +38,7 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _Veh
     }
 
     _angle = 90 * spawn;
-    _speed = 5.0F; // Valeur de base 5.0F
+    _speed = 1.0F; // Valeur de base 5.0F
     _Patience = 0;
     _direction = (direction % 4);
     _directionPos = sf::Vector2f(-WINDOW_SIZE_VERTI / 2 * sin(M_PI / 2 * _direction) - voie * cos(M_PI / 2 * _direction), WINDOW_SIZE_HORIZ / 2 * cos(M_PI / 2 * _direction) - voie * sin(M_PI / 2 * _direction));
@@ -65,7 +65,6 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _Veh
     _Sprite.setScale(sf::Vector2f(0.2, 0.2));
     setPos(_x, _y);
     setAngle(_angle);
-
     _Sprite.setPosition(_x, _y);
 }
 
@@ -81,7 +80,7 @@ bool Vehicule::HasToTurnRight() {
 	return false;
 }
 
-bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<sf::CircleShape*>& FeuTab) {
+bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
     // Exemple de logique pour vérifier les collisions avec d'autres véhicules
     for (auto& vehicule : Vehicules) {
         if (this != &vehicule && this->getSprite().getGlobalBounds().intersects(vehicule.getSprite().getGlobalBounds())) {
@@ -108,9 +107,30 @@ sf::FloatRect Vehicule::getExpandedBounds(float extraLength) {
 }
 
 void Vehicule::drawBoundingBox(sf::RenderWindow& window) {
+    sf::FloatRect bounds = _Sprite.getGlobalBounds();
+    sf::RectangleShape boundingBox;
+    boundingBox.setPosition(bounds.left, bounds.top);
+    boundingBox.setSize(sf::Vector2f(bounds.width, bounds.height));
+    boundingBox.setFillColor(sf::Color::Transparent);
+    boundingBox.setOutlineColor(sf::Color::Red);
+    boundingBox.setOutlineThickness(1.0f);
+    window.draw(boundingBox);
 }
 
 void Vehicule::drawDetectionSquare(sf::RenderWindow& window, std::vector<Vehicule>& Vehicules) {
+    // Définir la taille du carré de détection (par exemple, 100x100)
+    float detectionSize = 100.0f;
+
+    // Créer un carré pour représenter la zone de détection
+    sf::RectangleShape detectionSquare;
+    detectionSquare.setPosition(_x - detectionSize / 2, _y - detectionSize / 2); // Positionner le carré autour du véhicule
+    detectionSquare.setSize(sf::Vector2f(detectionSize, detectionSize)); // Définir la taille du carré
+    detectionSquare.setFillColor(sf::Color::Transparent); // Rendre le carré transparent
+    detectionSquare.setOutlineColor(sf::Color::Red); // Définir la couleur de la bordure en rouge
+    detectionSquare.setOutlineThickness(1.0f); // Définir l'épaisseur de la bordure
+
+    // Dessiner le carré sur la fenêtre
+    window.draw(detectionSquare);
 }
 
 void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
@@ -118,7 +138,21 @@ void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*
     _x += _speed * cos(_angle);
     _y += _speed * sin(_angle);
     setPos(_x, _y);
-    //_Sprite.setPosition(_x, _y); // Mise à jour de la position du sprite
+    _Sprite.setPosition(_x, _y); // Mise à jour de la position du sprite
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+}
+
+
+void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
+    if (CanGoForward(Vehicules, FeuTab)) {
+        _x += _speed * cos(_angle * M_PI / 180);
+        _y += _speed * sin(_angle * M_PI / 180);
+        setPos(_x, _y);
+        _Sprite.setPosition(_x, _y);
+    }
+    else {
+        SpeedDown();
+    }
 }
 
 void Vehicule::SpeedUp() {

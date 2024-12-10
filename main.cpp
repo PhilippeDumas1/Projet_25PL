@@ -122,7 +122,6 @@ int main() {
         for (auto& vehicule : vehicules) {
             vehicule.move(vehicules, traffic_lights);
             std::cout << "Position de la voiture après move: (" << vehicule.getX() << ", " << vehicule.getY() << ")" << std::endl;
-            //window.draw(vehicule.getSprite());
         }
 
         // Dessiner la fenêtre

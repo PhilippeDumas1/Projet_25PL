@@ -51,6 +51,23 @@ const sf::Vector2f& Traffic_light::get_position() const {
     return position_;
 }
 
+
+sf::FloatRect Traffic_light::getExpandedBounds(float extraLength) {
+    sf::FloatRect bounds(position_.x - extraLength / 2, position_.y - extraLength / 2, extraLength, extraLength);
+    return bounds;
+}
+
+void Traffic_light::drawBoundingBox(sf::RenderWindow& window) {
+	sf::FloatRect bounds = getExpandedBounds(50);
+	sf::RectangleShape boundingBox;
+	boundingBox.setPosition(bounds.left, bounds.top);
+	boundingBox.setSize(sf::Vector2f(bounds.width, bounds.height));
+	boundingBox.setFillColor(sf::Color::Transparent);
+	boundingBox.setOutlineColor(sf::Color::Red);
+	boundingBox.setOutlineThickness(1.0f);
+	window.draw(boundingBox);
+}
+
 const sf::Color& get_SFML_color(const Traffic_light& traffic_light){
     switch (traffic_light.get_traffic_color()){
     case Traffic_color::green:

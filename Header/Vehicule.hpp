@@ -14,7 +14,7 @@ public:
     bool HasToTurnLeft();
     bool HasToTurnRight();
 
-    bool CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<sf::CircleShape*>& FeuTab);
+    bool CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab);
 
 	//bool CanTurnLeft(std::vector<Vehicule>& Vehicules, std::vector<sf::CircleShape*>& FeuTab);
 	//bool CanTurnRight(std::vector<Vehicule>& Vehicules, std::vector<sf::CircleShape*>& FeuTab);

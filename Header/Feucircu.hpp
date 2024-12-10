@@ -34,6 +34,11 @@ public:
     const Traffic_color& get_traffic_color() const;
 
     const sf::Vector2f& get_position() const;
+
+    sf::FloatRect getExpandedBounds(float extraLength);
+
+    void drawBoundingBox(sf::RenderWindow& window);
+
 };
 
 const sf::Color& get_SFML_color(const Traffic_light& traffic_light);
