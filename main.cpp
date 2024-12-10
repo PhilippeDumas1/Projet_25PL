@@ -53,22 +53,6 @@ int main() {
     Traffic_light traffic_light_slave{ Traffic_color::green, sf::Vector2f(475, 650) };
 
     // Initialisation des feux
-
-    /*
-    vector<Traffic_light*> traffic_lights;
-    traffic_lights.emplace_back(Traffic_color::red, sf::Vector2f(350, 575));
-    traffic_lights.emplace_back(Traffic_color::red, sf::Vector2f(350, 625));
-
-    traffic_lights.emplace_back(Traffic_color::green, sf::Vector2f(475,650));
-    traffic_lights.emplace_back(Traffic_color::green, sf::Vector2f(525,650));
-
-    traffic_lights.emplace_back(Traffic_color::red, sf::Vector2f(550, 525));
-    traffic_lights.emplace_back(Traffic_color::red, sf::Vector2f(550, 475));
-
-    traffic_lights.emplace_back(Traffic_color::green, sf::Vector2f(425,450));
-    traffic_lights.emplace_back(Traffic_color::green, sf::Vector2f(375,450));
-    */
-
     std::vector<Traffic_light*> traffic_lights;
     traffic_lights.push_back(new Traffic_light(Traffic_color::red, sf::Vector2f(350, 575)));
     traffic_lights.push_back(new Traffic_light(Traffic_color::red, sf::Vector2f(350, 625)));

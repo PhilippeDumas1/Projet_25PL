@@ -14,13 +14,13 @@ enum SpawnPoint {
 };
 
 Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _VehiculeType(type) {
-    setTexture(Skin); // Remplacez setSkin par setTexture
+    setTexture(Skin);
     int voie = (_VehiculeType == 1) ? 25 : 75; // 25 pour voiture, 75 pour bus et vélo
 
     switch (spawn) {
     case DVG:
         switch (_VehiculeType) {
-        case 1: setPos(0, 575); break;
+        case 1: _x = 0; _y = 575; break;
         case 2: // Bus
             _x = 0;
             _y = 625;
@@ -41,12 +41,14 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _Veh
     _speed = 1.0F; // Valeur de base 5.0F
     _Patience = 0;
     _direction = (direction % 4);
-    _directionPos = sf::Vector2f(-WINDOW_SIZE_VERTI / 2 * sin(M_PI / 2 * _direction) - voie * cos(M_PI / 2 * _direction), WINDOW_SIZE_HORIZ / 2 * cos(M_PI / 2 * _direction) - voie * sin(M_PI / 2 * _direction));
+    _directionPos = sf::Vector2f(static_cast<float>(-WINDOW_SIZE_VERTI / 2 * sin(M_PI / 2 * _direction) - voie * cos(M_PI / 2 * _direction)),
+                                 static_cast<float>(WINDOW_SIZE_HORIZ / 2 * cos(M_PI / 2 * _direction) - voie * sin(M_PI / 2 * _direction)));
+
 
     switch (_VehiculeType) {
     case 1:
         if (DEBUG_MODE) std::cout << "[NEW]\tCar :";
-        _Sprite.setOrigin(0, 575);
+        _Sprite.setOrigin(0, 0);
         break;
     case 2:
         if (DEBUG_MODE) std::cout << "[NEW]\tBus :";
@@ -62,7 +64,10 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _Veh
     }
 
     if (DEBUG_MODE) std::cout << "\tx:" << _x << "\ty:" << _y << "\ta:" << std::setfill('0') << std::setw(2) << _angle << "\ts:" << spawn << "\td:" << _direction << std::endl;
-    _Sprite.setScale(sf::Vector2f(0.2, 0.2));
+    
+    _Sprite.setScale(sf::Vector2f(0.5, 0.5));
+
+    // Set the position
     setPos(_x, _y);
     setAngle(_angle);
     _Sprite.setPosition(_x, _y);
