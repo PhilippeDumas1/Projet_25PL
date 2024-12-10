@@ -6,6 +6,10 @@
 
 using namespace std::chrono_literals;
 
+enum color {
+    DVG, // Exemple de point de spa
+};
+
 Traffic_light::Traffic_light(const Traffic_color& traffic_color, sf::Vector2f position) : traffic_color_(traffic_color), position_(position) {}
 
 void Traffic_light::operator++() {

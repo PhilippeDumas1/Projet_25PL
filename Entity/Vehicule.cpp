@@ -86,29 +86,38 @@ bool Vehicule::HasToTurnRight() {
 }
 
 bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
-    // Exemple de logique pour vérifier les collisions avec d'autres véhicules
+    sf::FloatRect expandedBounds = getExpandedBounds(10.0f); // Ajustez la valeur selon vos besoins
+
+    // Vérifier les collisions avec d'autres véhicules
     for (auto& vehicule : Vehicules) {
-        if (this != &vehicule && this->getSprite().getGlobalBounds().intersects(vehicule.getSprite().getGlobalBounds())) {
+        if (this != &vehicule && expandedBounds.intersects(vehicule.getExpandedBounds(10.0f))) {
             return false; // Collision détectée
         }
     }
 
-    // Exemple de logique pour vérifier les feux de signalisation
+    // Vérifier les collisions avec les feux de signalisation
     for (auto& feu : FeuTab) {
-        if (this->getSprite().getGlobalBounds().intersects(feu->getGlobalBounds())) {
+        if (expandedBounds.intersects(feu->getGlobalBounds())) {
             // Logique pour déterminer si le feu est rouge
-            // if (feu->isRed()) {
-            //     return false;
-            // }
+            if (feu->get_traffic_color() == Traffic_color::red) {
+                return false;
+            }
+            else if (feu->get_traffic_color() == Traffic_color::green) {
+                return true;
+            }
         }
     }
 
     return true; // Aucun obstacle détecté
 }
 
-
 sf::FloatRect Vehicule::getExpandedBounds(float extraLength) {
-	return sf::FloatRect();
+    sf::FloatRect bounds = _Sprite.getGlobalBounds();
+    bounds.left -= extraLength;
+    bounds.top -= extraLength;
+    bounds.width += 2 * extraLength;
+    bounds.height += 2 * extraLength;
+    return bounds;
 }
 
 void Vehicule::drawBoundingBox(sf::RenderWindow& window) {
