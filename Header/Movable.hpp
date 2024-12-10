@@ -19,7 +19,11 @@ public:
     virtual void setAngle(float angle) { _angle = angle; }
     virtual void setSkin(sf::Texture& Skin) { _Sprite.setTexture(Skin); }
     virtual void setSprite(sf::Sprite Sprite) { _Sprite = Sprite; }
-    virtual void setPos(float x, float y) { _x = x; _y = y; }
+    virtual void setPos(float x, float y) {
+        _x = x;
+        _y = y;
+        _Sprite.setPosition(x, y); // Mise à jour de la position du sprite
+    }
 
 protected:
     float _x, _y;

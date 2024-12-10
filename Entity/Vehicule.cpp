@@ -19,9 +19,7 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _Veh
     switch (spawn) {
     case DVG:
         switch (_VehiculeType) {
-        case 1: // Voiture
-            _x = 0;
-            _y = 575;
+        case 1: setPos(0, 575);
             break;
         case 2: // Bus
             _x = 0;
@@ -116,10 +114,11 @@ void Vehicule::drawDetectionSquare(sf::RenderWindow& window, std::vector<Vehicul
 }
 
 void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
-    _x += _speed * cos(_angle * M_PI / 180);
-    _y += _speed * sin(_angle * M_PI / 180);
+    // Exemple de mise à jour de la position
+    _x += _speed * cos(_angle);
+    _y += _speed * sin(_angle);
     setPos(_x, _y);
-
+    //_Sprite.setPosition(_x, _y); // Mise à jour de la position du sprite
 }
 
 void Vehicule::SpeedUp() {

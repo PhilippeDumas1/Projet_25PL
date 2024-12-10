@@ -109,11 +109,6 @@ int main() {
 
     bool running = true;
 
-    // Mettre à jour la position des véhicules
-    for (auto& vehicule : vehicules) {
-        vehicule.move(vehicules, traffic_lights); // Mettre à jour la position de la voiture
-    }
-
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -121,6 +116,13 @@ int main() {
                 running = false;
                 window.close();
             }
+        }
+
+        // Mettre à jour la position des véhicules
+        for (auto& vehicule : vehicules) {
+            vehicule.move(vehicules, traffic_lights);
+            std::cout << "Position de la voiture après move: (" << vehicule.getX() << ", " << vehicule.getY() << ")" << std::endl;
+            //window.draw(vehicule.getSprite());
         }
 
         // Dessiner la fenêtre
@@ -200,13 +202,9 @@ int main() {
         window.draw(circle1D);
         window.draw(circle2D);
 
-		// Dessiner la voiture
-		for (auto& vehicule : vehicules) {
-			vehicule.move(vehicules, traffic_lights);
-		}
-
-		window.draw(vehicules[0].getSprite());
-
+        for (auto& vehicule : vehicules) {
+            window.draw(vehicule.getSprite());
+        }
        
         window.display();
     }
