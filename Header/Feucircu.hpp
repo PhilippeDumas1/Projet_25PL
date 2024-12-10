@@ -39,6 +39,7 @@ public:
 
     void drawBoundingBox(sf::RenderWindow& window);
 
+    sf::FloatRect getGlobalBounds() const;
 };
 
 const sf::Color& get_SFML_color(const Traffic_light& traffic_light);

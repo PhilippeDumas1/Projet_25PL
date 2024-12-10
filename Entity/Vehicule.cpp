@@ -134,24 +134,16 @@ void Vehicule::drawDetectionSquare(sf::RenderWindow& window, std::vector<Vehicul
 }
 
 void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
-    // Exemple de mise à jour de la position
-    _x += _speed * cos(_angle);
-    _y += _speed * sin(_angle);
-    setPos(_x, _y);
-    _Sprite.setPosition(_x, _y); // Mise à jour de la position du sprite
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-}
-
-
-void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
     if (CanGoForward(Vehicules, FeuTab)) {
         _x += _speed * cos(_angle * M_PI / 180);
         _y += _speed * sin(_angle * M_PI / 180);
         setPos(_x, _y);
         _Sprite.setPosition(_x, _y);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     else {
         SpeedDown();
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
 

@@ -16,6 +16,8 @@ namespace fs = std::filesystem;
 const int WINDOW_SIZE_HORIZ = 1000; // ou toute autre valeur appropriée
 const int WINDOW_SIZE_VERTI = 1000;
 
+
+
 enum SpawnPoint {
     DVG, // Exemple de point de spawn
     // Ajoutez d'autres points de spawn ici

@@ -68,6 +68,12 @@ void Traffic_light::drawBoundingBox(sf::RenderWindow& window) {
 	window.draw(boundingBox);
 }
 
+sf::FloatRect Traffic_light::getGlobalBounds() const {
+    // Implémentation de getGlobalBounds
+    // Vous pouvez ajuster la taille et la position selon vos besoins
+    return sf::FloatRect(position_.x, position_.y, 50.0f, 50.0f); // Exemple de taille 50x50
+}
+
 const sf::Color& get_SFML_color(const Traffic_light& traffic_light){
     switch (traffic_light.get_traffic_color()){
     case Traffic_color::green:
