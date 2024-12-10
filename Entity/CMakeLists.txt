@@ -16,7 +16,7 @@ if(MSVC)
 endif()
 
 add_executable (Feucircu "Feucircu.cpp")
-add_executable (Voiture "Voiture.cpp")
+add_executable (Vehicule "Vehicule.cpp")
 target_link_libraries(Feucircu sfml-graphics sfml-window)
 target_link_libraries(Voiture sfml-graphics sfml-window)
 

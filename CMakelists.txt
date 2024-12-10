@@ -21,4 +21,4 @@ link_libraries(sfml-graphics sfml-window)
 link_libraries (Threads::Threads)
 
 
-add_executable (Projet_25PL "main.cpp" "Entity/Feucircu.cpp")
+add_executable (Projet_25PL "main.cpp" "Entity/Feucircu.cpp" "Entity/Vehicule.cpp")
