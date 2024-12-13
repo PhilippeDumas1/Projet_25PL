@@ -28,18 +28,14 @@ public:
     explicit Traffic_light(const Traffic_color& traffic_color, sf::Vector2f position);
 
     void operator++();
-
     void set_traffic_color(const Traffic_color& traffic_color);
 
     const Traffic_color& get_traffic_color() const;
-
     const sf::Vector2f& get_position() const;
 
     sf::FloatRect getExpandedBounds(float extraLength);
-
-    void drawBoundingBox(sf::RenderWindow& window);
-
     sf::FloatRect getGlobalBounds() const;
+    void drawBoundingBox(sf::RenderWindow& window);
 };
 
 const sf::Color& get_SFML_color(const Traffic_light& traffic_light);

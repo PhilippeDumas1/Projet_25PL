@@ -7,43 +7,80 @@ const int WINDOW_SIZE_HORIZ = 1000; // ou toute autre valeur appropriée
 const int WINDOW_SIZE_VERTI = 1000;
 const double M_PI = 3.14;
 const bool DEBUG_MODE = false;
+const float MAX_SPEED = 35.0F;
+const float MIN_SPEED = 25.0F;
 
 enum SpawnPoint {
-    DVG, // Exemple de point de spawn
-    // Ajoutez d'autres points de spawn ici
+    DH, // Début haut
+	DG, // Début gauche
+	DD, // Début droite
+	DB, // Début bas
 };
 
-Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _VehiculeType(type) {
+enum VehiculeType {
+	Car = 1,
+	Bus = 2,
+	Bike = 3
+};
+
+Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _VehiculeType(type), _currentPathIndex(0), _currentDirectionIndex(0) {
     setTexture(Skin);
-    int voie = (_VehiculeType == 1) ? 25 : 75; // 25 pour voiture, 75 pour bus et vélo
+
+    // Définir les chemins pour chaque direction
+    //voiture Gauche
+    _paths[0] = { {sf::Vector2f(0, 575), sf::Vector2f(1000, 575)} };
+    _paths[1] = { {sf::Vector2f(0, 575), sf::Vector2f(425, 575), sf::Vector2f(425, 1000)} };
+    _paths[2] = { {sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, 0)} };
+	//----------------
+	//voiture Droite
+	_paths[2] = { {sf::Vector2f(1000, 450), sf::Vector2f(0, 450)} };
 
     switch (spawn) {
-    case DVG:
+    case DG:
         switch (_VehiculeType) {
-        case 1: _x = 0; _y = 575; break;
-        case 2: // Bus
-            _x = 0;
-            _y = 625;
-            break;
-        case 3: // Vélo
-            _x = 0;
-            _y = 675;
-            break;
-        default:
-            _x = 0;
-            _y = 0; // Position par défaut
-            break;
+        case 1: _x = 0; _y = 575; break; //Voiture
+        case 2: _x = 0; _y = 625; break; //Bus
+		case 3: _x = 0; _y = 0;   break; //Vélo a faire
+        default:_x = 0; _y = 0;   break;
         }
+        _angle = 0;
         break;
+    case DH:
+        switch (_VehiculeType) {
+        case 1: _x = 425; _y = 0; break; // Voiture
+        case 2: _x = 500; _y = 0; break; // Bus
+        case 3: _x = 550; _y = 0; break; // Vélo
+        default: _x = 0; _y = 0; break;
+        }
+        _angle = 90; // Déplacement vers le bas
+        break;
+    case DD:
+        switch (_VehiculeType) {
+        case 1: _x = 1000; _y = 450; break; // Voiture
+        case 2: _x = 1000; _y = 500; break; // Bus
+        case 3: _x = 1000; _y = 550; break; // Vélo
+        default: _x = 0; _y = 0; break;
+        }
+        _angle = 180; // Déplacement vers la gauche
+        break;
+    case DB:
+        switch (_VehiculeType) {
+        case 1: _x = 450; _y = 1000; break; // Voiture
+        case 2: _x = 500; _y = 1000; break; // Bus
+        case 3: _x = 550; _y = 1000; break; // Vélo
+        default: _x = 0; _y = 0; break;
+        }
+        _angle = 270; // Déplacement vers le haut
+        break;
+    default:
+        _x = 0; _y = 0; _angle = 0; break;
     }
 
-    _angle = 90 * spawn;
-    _speed = 1.0F; // Valeur de base 5.0F
+    _speed = 25.0F;
     _Patience = 0;
     _direction = (direction % 4);
-    _directionPos = sf::Vector2f(static_cast<float>(-WINDOW_SIZE_VERTI / 2 * sin(M_PI / 2 * _direction) - voie * cos(M_PI / 2 * _direction)),
-                                 static_cast<float>(WINDOW_SIZE_HORIZ / 2 * cos(M_PI / 2 * _direction) - voie * sin(M_PI / 2 * _direction)));
-
+    _directionPos = sf::Vector2f(static_cast<float>(-WINDOW_SIZE_VERTI / 2 * sin(M_PI / 2 * _direction) * cos(M_PI / 2 * _direction)),
+                                 static_cast<float>(WINDOW_SIZE_HORIZ / 2 * cos(M_PI / 2 * _direction) * sin(M_PI / 2 * _direction)));
 
     switch (_VehiculeType) {
     case 1:
@@ -71,45 +108,87 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _Veh
     setPos(_x, _y);
     setAngle(_angle);
     _Sprite.setPosition(_x, _y);
+    _Sprite.setRotation(_angle);
+
+    sf::FloatRect bounds = _Sprite.getLocalBounds();
+    _Sprite.setOrigin(bounds.width / 2, bounds.height / 2);
+
+    determinePath(_direction);
+    updateSpriteRotation();
 }
+
+//----------------------------------------------------------------
 
 int Vehicule::getVehiculeType() {
 	return _VehiculeType;
 }
 
-bool Vehicule::HasToTurnLeft() {
-	return false;
-}
+//----------------------------------------------------------------
 
-bool Vehicule::HasToTurnRight() {
-	return false;
-}
+bool Vehicule::CanTurnLeft(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
+    for (auto& feu : FeuTab) {
+        if (feu->get_traffic_color() == Traffic_color::red) {
+            return false;
+        }
+    }
 
-bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
-    sf::FloatRect expandedBounds = getExpandedBounds(10.0f); // Ajustez la valeur selon vos besoins
-
-    // Vérifier les collisions avec d'autres véhicules
+    // Vérifier s'il y a un autre véhicule dans la zone de détection
+    sf::FloatRect expandedBounds = getExpandedBounds(10.0f);
     for (auto& vehicule : Vehicules) {
         if (this != &vehicule && expandedBounds.intersects(vehicule.getExpandedBounds(10.0f))) {
             return false; // Collision détectée
         }
     }
 
-    // Vérifier les collisions avec les feux de signalisation
+    // Si aucune des conditions ci-dessus n'est remplie, le véhicule peut tourner à gauche
+    return true;
+}
+
+bool Vehicule::CanTurnRight(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
+	return false;
+}
+
+bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
+    sf::FloatRect expandedBounds = getExpandedBounds(10.0f);
+
+    for (auto& vehicule : Vehicules) {
+        if (this != &vehicule && expandedBounds.intersects(vehicule.getExpandedBounds(10.0f))) {
+            if (_speed == 0 && vehicule._speed == 0) {
+                if (_Patience > vehicule._Patience) {
+                    vehicule.SpeedDown();
+                    return true;
+                }
+                else {
+                    SpeedDown();
+                    return false;
+                }
+            }
+            return false; // Collision détectée
+        }
+    }
+
     for (auto& feu : FeuTab) {
         if (expandedBounds.intersects(feu->getGlobalBounds())) {
-            // Logique pour déterminer si le feu est rouge
             if (feu->get_traffic_color() == Traffic_color::red) {
                 return false;
             }
+			else if (feu->get_traffic_color() == Traffic_color::orange) {
+				SpeedDown();
+				return true;
+			}
             else if (feu->get_traffic_color() == Traffic_color::green) {
                 return true;
             }
         }
     }
-
     return true; // Aucun obstacle détecté
 }
+
+bool Vehicule::isOutOfBounds(int windowWidth, int windowHeight) const {
+    return _x < 0 || _x > windowWidth || _y < 0 || _y > windowHeight;
+}
+
+//----------------------------------------------------------------
 
 sf::FloatRect Vehicule::getExpandedBounds(float extraLength) {
     sf::FloatRect bounds = _Sprite.getGlobalBounds();
@@ -119,6 +198,8 @@ sf::FloatRect Vehicule::getExpandedBounds(float extraLength) {
     bounds.height += 2 * extraLength;
     return bounds;
 }
+
+//----------------------------------------------------------------
 
 void Vehicule::drawBoundingBox(sf::RenderWindow& window) {
     sf::FloatRect bounds = _Sprite.getGlobalBounds();
@@ -147,32 +228,143 @@ void Vehicule::drawDetectionSquare(sf::RenderWindow& window, std::vector<Vehicul
     window.draw(detectionSquare);
 }
 
-void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
+void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, float deltaTime) {
     if (CanGoForward(Vehicules, FeuTab)) {
-        _x += _speed * cos(_angle * M_PI / 180);
-        _y += _speed * sin(_angle * M_PI / 180);
-        setPos(_x, _y);
-        _Sprite.setPosition(_x, _y);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        if (_speed == 0) {
+            SpeedUp();
+        }
+
+        if (_currentPathIndex < _currentPath[_currentDirectionIndex].points.size()) {
+            sf::Vector2f target = _currentPath[_currentDirectionIndex].points[_currentPathIndex];
+            sf::Vector2f direction = target - sf::Vector2f(_x, _y);
+            float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+            sf::Vector2f unitDirection = direction / length;
+
+            if (length != 0) {
+                _x += unitDirection.x * _speed * deltaTime;
+                _y += unitDirection.y * _speed * deltaTime;
+            }
+
+            setPos(_x, _y);
+            _Sprite.setPosition(_x, _y);
+
+            // Vérifier si le véhicule a atteint la fin du segment de chemin actuel
+            if (std::abs(_x - target.x) < 1.0f && std::abs(_y - target.y) < 1.0f) {
+                _currentPathIndex++;
+                
+                if (_currentPathIndex < _currentPath[_currentDirectionIndex].points.size()) {
+                    updateDirection(_currentPath[_currentDirectionIndex].points[_currentPathIndex]);
+                    updateSpriteRotation();
+                }
+                else {
+                    _currentPathIndex = 0;
+                    _currentDirectionIndex++;
+                    if (_currentDirectionIndex < _directions.size()) {
+                        determinePath(_directions[_currentDirectionIndex]);
+                        updateDirection(_currentPath[_currentDirectionIndex].points[_currentPathIndex]);
+                        updateSpriteRotation();
+                    }
+                }
+            }
+        }
     }
     else {
         SpeedDown();
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
 
 void Vehicule::SpeedUp() {
-    _speed += 1.0F;
+    if (_speed == 0) {
+        _speed = MIN_SPEED; // Reprendre à la vitesse minimale de base
+    }
+    else {
+        _speed += 1.0F;
+        if (_speed > MAX_SPEED) {
+            _speed = MAX_SPEED;
+        }
+    }
 }
 
 void Vehicule::SpeedDown() {
     _speed -= 1.0F;
+    if (_speed < 0) {
+        _speed = 0;
+    }
 }
 
-Vehicule NewCar(int spawn, int direction, sf::Texture& Skin) {
-    return Vehicule(spawn, direction, 1, Skin);
+void Vehicule::TurnLeft() {
+    _angle -= 90; // Ajustez l'angle pour tourner à gauche
+    if (_angle < 0) {
+        _angle += 360;
+    }
+    _Sprite.setRotation(_angle);
+}
+
+void Vehicule::TurnRight() {
+    _angle += 90; // Ajustez l'angle pour tourner à droite
+    if (_angle >= 360) {
+        _angle -= 360;
+    }
+	_Sprite.setRotation(_angle);
 }
 
 void Vehicule::setTexture(const sf::Texture& texture) {
 	_Sprite.setTexture(texture);
+}
+
+void Vehicule::determinePath(int direction) {
+    _currentPath.clear();
+    _currentPath.push_back(_paths[direction]);
+    _currentPathIndex = 0;
+}
+
+void Vehicule::setDirections(const std::vector<int>& directions) {
+    _directions = directions;
+    _currentDirectionIndex = 0;
+    if (!_directions.empty()) {
+        determinePath(_directions[_currentDirectionIndex]);
+    }
+}
+
+void Vehicule::updateDirection(const sf::Vector2f& target) {
+    sf::Vector2f currentPos(_x, _y);
+    sf::Vector2f direction = target - currentPos;
+
+    if (std::abs(direction.x) > std::abs(direction.y)) {
+        if (direction.x > 0) {
+            _direction = 0; // Droite
+        }
+        else {
+            _direction = 2; // Gauche
+        }
+    }
+    else {
+        if (direction.y > 0) {
+            _direction = 1; // Bas
+        }
+        else {
+            _direction = 3; // Haut
+        }
+    }
+}
+
+void Vehicule::updateSpriteRotation() {
+    switch (_direction) {
+    case 0: // Droite
+        _angle = 0;
+        break;
+    case 1: // Bas
+        _angle = 90;
+        break;
+    case 2: // Gauche
+        _angle = 180;
+        break;
+    case 3: // Haut
+        _angle = 270;
+        break;
+    default:
+        _angle = 0;
+        break;
+    }
+    _Sprite.setRotation(_angle);
 }

@@ -57,7 +57,7 @@ const sf::Vector2f& Traffic_light::get_position() const {
 
 
 sf::FloatRect Traffic_light::getExpandedBounds(float extraLength) {
-    sf::FloatRect bounds(position_.x - extraLength / 2, position_.y - extraLength / 2, extraLength, extraLength);
+    sf::FloatRect bounds(position_.x - extraLength / 4, position_.y - extraLength / 4, extraLength / 2, extraLength / 2);
     return bounds;
 }
 
@@ -73,9 +73,8 @@ void Traffic_light::drawBoundingBox(sf::RenderWindow& window) {
 }
 
 sf::FloatRect Traffic_light::getGlobalBounds() const {
-    // Implémentation de getGlobalBounds
-    // Vous pouvez ajuster la taille et la position selon vos besoins
-    return sf::FloatRect(position_.x, position_.y, 50.0f, 50.0f); // Exemple de taille 50x50
+    return sf::FloatRect(position_.x - 10.0f, position_.y - 10.0f, 20.0f, 20.0f); // Example of a smaller size 20x20
+
 }
 
 const sf::Color& get_SFML_color(const Traffic_light& traffic_light){
@@ -110,8 +109,8 @@ void run_traffic_light(Traffic_light& traffic_light_master, Traffic_light& traff
     traffic_light_slave.set_traffic_color(Traffic_color::red);
     while (!stop_token.stop_requested())
     {
-
         std::this_thread::sleep_for(std::chrono::seconds(time_waiting));
+
         if (traffic_light_master.get_traffic_color() == Traffic_color::green)
         {
             ++traffic_light_master;

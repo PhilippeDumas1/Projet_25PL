@@ -8,23 +8,54 @@
 #include "Vehicule.hpp"
 #include <filesystem>
 
-//C:\Program Files\SFML\img
-
 using namespace std;
 namespace fs = std::filesystem;
 
 const int WINDOW_SIZE_HORIZ = 1000; // ou toute autre valeur appropriée
 const int WINDOW_SIZE_VERTI = 1000;
 
-
+float radius = 5;
 
 enum SpawnPoint {
-    DVG, // Exemple de point de spawn
-    // Ajoutez d'autres points de spawn ici
+	DH, // Début haut
+	DG, // Début gauche
+	DD, // Début droite
+	DB, // Début bas
 };
 
-int main() {
+std::vector<Path> carPaths = {
+    { {sf::Vector2f(0, 575), sf::Vector2f(1000, 575)} },
+    { {sf::Vector2f(0, 575), sf::Vector2f(425, 575), sf::Vector2f(425, 1000)} },
+    { {sf::Vector2f(1000, 450), sf::Vector2f(0, 450)} },
+    { {sf::Vector2f(450, 1000), sf::Vector2f(450, 0)} }
+};
 
+class VehicleGenerator {
+public:
+    VehicleGenerator(sf::Texture& carTexture, std::vector<Path>& paths)
+        : carTexture(carTexture), paths(paths) {
+    }
+
+    void generateVehicles(std::vector<Vehicule>& vehicules, float deltaTime) {
+        spawnTimer += deltaTime;
+        if (spawnTimer >= spawnInterval) {
+            spawnTimer = 0.0f;
+            int spawnPoint = rand() % 4; // Choisir un point de spawn aléatoire
+            Vehicule newCar(spawnPoint, 0, 1, carTexture);
+            newCar.setDirections({ 0, 1, 2, 3 }); // Exemple de directions à suivre
+            vehicules.push_back(newCar);
+        }
+    }
+
+private:
+    sf::Texture& carTexture;
+    std::vector<Path>& paths;
+    float spawnTimer = 0.0f;
+    const float spawnInterval = 5.0f; // Intervalle de temps entre les spawns (en secondes)
+};
+
+
+int main() {
 	// Initialisation des textures
 	sf::Texture carTexture;
     if (!carTexture.loadFromFile("C:/Program Files/SFML/img/car.png")) {
@@ -33,27 +64,31 @@ int main() {
     }
     else{
 		std::cout << "Texture de la voiture chargée avec succès." << std::endl;
-
     }
 
 	// Initialisation des véhicules
-	std::vector<Vehicule> vehicules;
-	vehicules.push_back(Vehicule(DVG, 0, 1, carTexture));
+    std::vector<Vehicule> vehicules;
+    Vehicule newCar(DG, 0, 1, carTexture);
+    newCar.setDirections({ 2 }); // Assigner la direction spécifique
+    vehicules.push_back(newCar);
 
+    //VehicleGenerator vehicleGenerator(carTexture, carPaths);
+    /*
     for (auto& vehicule : vehicules) {
         sf::Sprite sprite = vehicule.getSprite();
         std::cout << "Position de la voiture: (" << sprite.getPosition().x << ", " << sprite.getPosition().y << ")" << std::endl;
         std::cout << "Taille de la voiture: (" << sprite.getGlobalBounds().width << ", " << sprite.getGlobalBounds().height << ")" << std::endl;
     }
+    */
 
-
-    float d1 = 400, d2 = 350, d3 = 300, size = 1000, radius = 5;
-
+    // Initialisation des feux
     Traffic_light traffic_light_master{ Traffic_color::red, sf::Vector2f(350, 575) };
     Traffic_light traffic_light_slave{ Traffic_color::green, sf::Vector2f(475, 650) };
 
-    // Initialisation des feux
     std::vector<Traffic_light*> traffic_lights;
+    traffic_lights.push_back(&traffic_light_master);
+    traffic_lights.push_back(&traffic_light_slave);
+
     traffic_lights.push_back(new Traffic_light(Traffic_color::red, sf::Vector2f(350, 575)));
     traffic_lights.push_back(new Traffic_light(Traffic_color::red, sf::Vector2f(350, 625)));
     traffic_lights.push_back(new Traffic_light(Traffic_color::green, sf::Vector2f(475, 650)));
@@ -62,7 +97,6 @@ int main() {
     traffic_lights.push_back(new Traffic_light(Traffic_color::red, sf::Vector2f(550, 475)));
     traffic_lights.push_back(new Traffic_light(Traffic_color::green, sf::Vector2f(425, 450)));
     traffic_lights.push_back(new Traffic_light(Traffic_color::green, sf::Vector2f(375, 450)));
-
 
     // Fenêtre SFML
     std::stop_source stopping;
@@ -76,14 +110,19 @@ int main() {
 	sf::Vertex CBG1[] = { sf::Vertex(sf::Vector2f(0, 650)), sf::Vertex(sf::Vector2f(350, 650)) };
     sf::Vertex CBG2[] = { sf::Vertex(sf::Vector2f(350, 650)), sf::Vertex(sf::Vector2f(350, 1000)) };
 
-    sf::Vertex DVG[] = { sf::Vertex(sf::Vector2f(0, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(400, 575), sf::Color::Magenta) };
-    sf::Vertex DVC1[] = { sf::Vertex(sf::Vector2f(400, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(1000, 575), sf::Color::Magenta) };
+    sf::Vertex DVG[] = { sf::Vertex(sf::Vector2f(0, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(425, 575), sf::Color::Magenta) };
+    sf::Vertex VGC1[] = { sf::Vertex(sf::Vector2f(425, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(1000, 575), sf::Color::Magenta) };
+    sf::Vertex VGC2[] = { sf::Vertex(sf::Vector2f(425, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(425, 1000), sf::Color::Magenta) };
+    sf::Vertex VGC3[] = { sf::Vertex(sf::Vector2f(475, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(475, 0), sf::Color::Magenta) };
 
     sf::Vertex DBG[] = { sf::Vertex(sf::Vector2f(0, 625), sf::Color::Cyan), sf::Vertex(sf::Vector2f(375, 625), sf::Color::Cyan) };
 
 	sf::Vertex MB[] = { sf::Vertex(sf::Vector2f(450, 650)), sf::Vertex(sf::Vector2f(450, 1000)) };
     sf::Vertex CBD1[] = { sf::Vertex(sf::Vector2f(550, 650)), sf::Vertex(sf::Vector2f(550, 1000)) };
     sf::Vertex CBD2[] = { sf::Vertex(sf::Vector2f(550, 650)), sf::Vertex(sf::Vector2f(1000, 650)) };
+
+	sf::Vertex DVB[] = { sf::Vertex(sf::Vector2f(450, 575)), sf::Vertex(sf::Vector2f(1000, 575)) };
+
 
     sf::Vertex MD[] = { sf::Vertex(sf::Vector2f(550, 550)), sf::Vertex(sf::Vector2f(1000, 550)) };
     sf::Vertex CHD1[] = { sf::Vertex(sf::Vector2f(550, 450)), sf::Vertex(sf::Vector2f(1000, 450)) };
@@ -95,6 +134,8 @@ int main() {
 
     bool running = true;
 
+    sf::Clock clock;
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -103,11 +144,22 @@ int main() {
                 window.close();
             }
         }
+        
+        float deltaTime = clock.restart().asSeconds();
 
-        // Mettre à jour la position des véhicules
-        for (auto& vehicule : vehicules) {
-            vehicule.move(vehicules, traffic_lights);
-            std::cout << "Position de la voiture après move: (" << vehicule.getX() << ", " << vehicule.getY() << ")" << std::endl;
+        //vehicleGenerator.generateVehicles(vehicules, deltaTime);
+
+        for (auto it = vehicules.begin(); it != vehicules.end();) {
+            it->move(vehicules, traffic_lights, deltaTime);
+            std::cout << "Position de la voiture après move: (" << it->getX() << ", " << it->getY() << ")" << std::endl;
+
+            // Check if the vehicle is out of bounds
+            if (it->isOutOfBounds(WINDOW_SIZE_HORIZ, WINDOW_SIZE_VERTI)) {
+                it = vehicules.erase(it); // Remove the vehicle from the vector
+            }
+            else {
+                ++it;
+            }
         }
 
         // Dessiner la fenêtre
@@ -118,13 +170,17 @@ int main() {
 		window.draw(CBG2, 2, sf::Lines);
 
         window.draw(DVG, 2, sf::Lines);
-		window.draw(DVC1, 2, sf::Lines);
+		window.draw(VGC1, 2, sf::Lines);
+		window.draw(VGC2, 2, sf::Lines);
+		window.draw(VGC3, 2, sf::Lines);
 
         window.draw(DBG, 2, sf::Lines);
 
 		window.draw(MB, 2, sf::Lines);
 		window.draw(CBD1, 2, sf::Lines);
 		window.draw(CBD2, 2, sf::Lines);
+
+		window.draw(DVB, 2, sf::Lines);
 
 		window.draw(MD, 2, sf::Lines);
 		window.draw(CHD1, 2, sf::Lines);
@@ -186,6 +242,7 @@ int main() {
 
         window.draw(circle1D);
         window.draw(circle2D);
+       
 
         for (auto& vehicule : vehicules) {
             window.draw(vehicule.getSprite());
@@ -195,5 +252,4 @@ int main() {
     }
 
     return 0;
-    running = false;
 };
