@@ -2,12 +2,13 @@
 #include <cmath>
 #include <iomanip>
 #include <chrono>
+#include <mutex>
 
 const int WINDOW_SIZE_HORIZ = 1000; // ou toute autre valeur appropriée
 const int WINDOW_SIZE_VERTI = 1000;
 const double M_PI = 3.14;
 const bool DEBUG_MODE = false;
-const float MAX_SPEED = 35.0F;
+const float MAX_SPEED = 45.0F;
 const float MIN_SPEED = 25.0F;
 
 enum SpawnPoint {
@@ -23,17 +24,24 @@ enum VehiculeType {
 	Bike = 3
 };
 
-Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _VehiculeType(type), _currentPathIndex(0), _currentDirectionIndex(0) {
+Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin)
+    : _VehiculeType(type), _currentPathIndex(0), _currentDirectionIndex(0), _state(MOVING) {
     setTexture(Skin);
 
-    // Définir les chemins pour chaque direction
-    //voiture Gauche
-    _paths[0] = { {sf::Vector2f(0, 575), sf::Vector2f(1000, 575)} };
-    _paths[1] = { {sf::Vector2f(0, 575), sf::Vector2f(425, 575), sf::Vector2f(425, 1000)} };
-    _paths[2] = { {sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, 0)} };
-	//----------------
-	//voiture Droite
-	_paths[2] = { {sf::Vector2f(1000, 450), sf::Vector2f(0, 450)} };
+    _paths = {
+        {0, {{sf::Vector2f(0, 575), sf::Vector2f(1000, 575)}}},//Chemin voiture Gauche
+        {1, {{sf::Vector2f(0, 575), sf::Vector2f(425, 575), sf::Vector2f(425, 1000)}}},
+        {2, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, 0)}}},
+        {3, {{sf::Vector2f(425, 0), sf::Vector2f(425, 1000)}}},//chemin voitue Haut
+        {4, {{sf::Vector2f(425, 0), sf::Vector2f(425, 475), sf::Vector2f(0, 475)}}},
+        {5, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, 0)}}},
+        {6, {{sf::Vector2f(1000, 450), sf::Vector2f(0, 450)}}},
+        {7, {{sf::Vector2f(1000, 450), sf::Vector2f(0, 450)}}},
+        {8, {{sf::Vector2f(1000, 450), sf::Vector2f(0, 450)}}},
+        {9, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}},
+        {10, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}},
+        {11, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}}
+    };
 
     switch (spawn) {
     case DG:
@@ -79,32 +87,17 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _Veh
     _speed = 25.0F;
     _Patience = 0;
     _direction = (direction % 4);
-    _directionPos = sf::Vector2f(static_cast<float>(-WINDOW_SIZE_VERTI / 2 * sin(M_PI / 2 * _direction) * cos(M_PI / 2 * _direction)),
-                                 static_cast<float>(WINDOW_SIZE_HORIZ / 2 * cos(M_PI / 2 * _direction) * sin(M_PI / 2 * _direction)));
+    _directionPos = sf::Vector2f(
+        static_cast<float>(-WINDOW_SIZE_VERTI / 2 * sin(M_PI / 2 * _direction) * cos(M_PI / 2 * _direction)),                         
+        static_cast<float>(WINDOW_SIZE_HORIZ / 2 * cos(M_PI / 2 * _direction) * sin(M_PI / 2 * _direction)));
 
-    switch (_VehiculeType) {
-    case 1:
-        if (DEBUG_MODE) std::cout << "[NEW]\tCar :";
-        _Sprite.setOrigin(0, 0);
-        break;
-    case 2:
-        if (DEBUG_MODE) std::cout << "[NEW]\tBus :";
-        _Sprite.setOrigin(0, 625);
-        break;
-    case 3:
-        if (DEBUG_MODE) std::cout << "[NEW]\tBike :";
-        _Sprite.setOrigin(60, 120);
-        break;
-    default:
-        if (DEBUG_MODE) std::cerr << "ERREUR" << std::endl;
-        break;
+    if (DEBUG_MODE) {
+        std::cout << "[NEW]\tVehicule : x:" << _x << " y:" << _y
+            << " angle:" << _angle << " spawn:" << spawn
+            << " direction:" << _direction << std::endl;
     }
 
-    if (DEBUG_MODE) std::cout << "\tx:" << _x << "\ty:" << _y << "\ta:" << std::setfill('0') << std::setw(2) << _angle << "\ts:" << spawn << "\td:" << _direction << std::endl;
-    
     _Sprite.setScale(sf::Vector2f(0.5, 0.5));
-
-    // Set the position
     setPos(_x, _y);
     setAngle(_angle);
     _Sprite.setPosition(_x, _y);
@@ -117,6 +110,13 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin) : _Veh
     updateSpriteRotation();
 }
 
+Vehicule::~Vehicule() {
+	if (DEBUG_MODE) {
+		std::cout << "[DEL]\tVehicule : x:" << _x << " y:" << _y
+			<< " angle:" << _angle << " direction:" << _direction << std::endl;
+	}
+}
+
 //----------------------------------------------------------------
 
 int Vehicule::getVehiculeType() {
@@ -125,6 +125,7 @@ int Vehicule::getVehiculeType() {
 
 //----------------------------------------------------------------
 
+//Fonction utilisé nul part
 bool Vehicule::CanTurnLeft(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
     for (auto& feu : FeuTab) {
         if (feu->get_traffic_color() == Traffic_color::red) {
@@ -144,11 +145,14 @@ bool Vehicule::CanTurnLeft(std::vector<Vehicule>& Vehicules, std::vector<Traffic
     return true;
 }
 
+//Fonction utilisé nul part
 bool Vehicule::CanTurnRight(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
 	return false;
 }
 
-bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
+//extern std::mutex traffic_light_mutex; // Assurez-vous que le mutex est accessible ici
+
+bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex) {
     sf::FloatRect expandedBounds = getExpandedBounds(10.0f);
 
     for (auto& vehicule : Vehicules) {
@@ -167,17 +171,20 @@ bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffi
         }
     }
 
-    for (auto& feu : FeuTab) {
-        if (expandedBounds.intersects(feu->getGlobalBounds())) {
-            if (feu->get_traffic_color() == Traffic_color::red) {
-                return false;
-            }
-			else if (feu->get_traffic_color() == Traffic_color::orange) {
-				SpeedDown();
-				return true;
-			}
-            else if (feu->get_traffic_color() == Traffic_color::green) {
-                return true;
+    {
+        std::lock_guard<std::mutex> lock(traffic_light_mutex);
+
+        for (auto& feu : FeuTab) {
+            if (expandedBounds.intersects(feu->getGlobalBounds())) {
+                std::cout << "Feu détecté: " << feu->get_traffic_color() << " à la position (" << feu->get_position().x << ", " << feu->get_position().y << ")" << std::endl;
+                if (feu->get_traffic_color() == Traffic_color::red) {
+                    return false;
+                }else if (feu->get_traffic_color() == Traffic_color::orange) {
+                    SpeedDown();
+                    return true;
+                }else if (feu->get_traffic_color() == Traffic_color::green) {
+                    return true;
+                }
             }
         }
     }
@@ -185,7 +192,9 @@ bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffi
 }
 
 bool Vehicule::isOutOfBounds(int windowWidth, int windowHeight) const {
-    return _x < 0 || _x > windowWidth || _y < 0 || _y > windowHeight;
+    sf::FloatRect bounds = _Sprite.getGlobalBounds();
+    return (bounds.left + bounds.width < 0 || bounds.left > windowWidth ||
+        bounds.top + bounds.height < 0 || bounds.top > windowHeight);
 }
 
 //----------------------------------------------------------------
@@ -201,6 +210,7 @@ sf::FloatRect Vehicule::getExpandedBounds(float extraLength) {
 
 //----------------------------------------------------------------
 
+//Fonction utilisé nul part
 void Vehicule::drawBoundingBox(sf::RenderWindow& window) {
     sf::FloatRect bounds = _Sprite.getGlobalBounds();
     sf::RectangleShape boundingBox;
@@ -212,6 +222,7 @@ void Vehicule::drawBoundingBox(sf::RenderWindow& window) {
     window.draw(boundingBox);
 }
 
+//Fonction utilisé nul part
 void Vehicule::drawDetectionSquare(sf::RenderWindow& window, std::vector<Vehicule>& Vehicules) {
     // Définir la taille du carré de détection (par exemple, 100x100)
     float detectionSize = 100.0f;
@@ -228,6 +239,9 @@ void Vehicule::drawDetectionSquare(sf::RenderWindow& window, std::vector<Vehicul
     window.draw(detectionSquare);
 }
 
+//----------------------------------------------------------------
+
+/*
 void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, float deltaTime) {
     if (CanGoForward(Vehicules, FeuTab)) {
         if (_speed == 0) {
@@ -272,22 +286,100 @@ void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*
         SpeedDown();
     }
 }
+*/
+
+//---
+
+void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex, float deltaTime) {
+    if (CanGoForward(Vehicules, FeuTab, traffic_light_mutex)) {
+        if (_state == STOPPED || _state == SLOWING_DOWN) {
+            _state = SPEEDING_UP;
+        }
+
+        if (_state == SPEEDING_UP) {
+            SpeedUp();
+            if (_speed >= MIN_SPEED) {
+                _state = MOVING;
+            }
+        }
+
+        if (_currentDirectionIndex < _currentPath.size() && _currentPathIndex < _currentPath[_currentDirectionIndex].points.size()) {
+            sf::Vector2f target = _currentPath[_currentDirectionIndex].points[_currentPathIndex];
+            sf::Vector2f direction = target - sf::Vector2f(_x, _y);
+            float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+            sf::Vector2f unitDirection = direction / length;
+
+            if (length != 0) {
+                _x += unitDirection.x * _speed * deltaTime;
+                _y += unitDirection.y * _speed * deltaTime;
+            }
+
+            setPos(_x, _y);
+            _Sprite.setPosition(_x, _y);
+
+            if (std::abs(_x - target.x) < 1.0f && std::abs(_y - target.y) < 1.0f) {
+                _currentPathIndex++;  //le véhicule atteint la fin d'un segment de chemin, il passe au segment suivant
+
+                if (_currentPathIndex < _currentPath[_currentDirectionIndex].points.size()) {
+                    updateDirection(_currentPath[_currentDirectionIndex].points[_currentPathIndex]);
+                    updateSpriteRotation();
+                }
+                else {
+                    _currentPathIndex = 0;
+                    _currentDirectionIndex++;
+
+                    if (_currentDirectionIndex < _directions.size()) {
+                        determinePath(_directions[_currentDirectionIndex]);
+                        updateDirection(_currentPath[_currentDirectionIndex].points[_currentPathIndex]);
+                        updateSpriteRotation();
+                    }
+                }
+            }
+        }
+
+        else {
+
+            if (_currentDirectionIndex + 1 < _directions.size()) {
+                _currentDirectionIndex++;
+                determinePath(_directions[_currentDirectionIndex]);
+            }
+            else {
+                if (isOutOfBounds(WINDOW_SIZE_HORIZ, WINDOW_SIZE_VERTI)) {
+                    auto it = std::find(Vehicules.begin(), Vehicules.end(), *this);
+                    if (it != Vehicules.end()) {
+                        Vehicules.erase(it);
+                        std::cout << "Véhicule supprimé" << std::endl;
+                    }
+                    return; // Sortir de la fonction pour éviter d'accéder à un objet supprimé
+                }
+            }
+        }
+    }
+    else {
+        SpeedDown();
+    }
+}
+
+//----------------------------------------------------------------
 
 void Vehicule::SpeedUp() {
     if (_speed == 0) {
         _speed = MIN_SPEED; // Reprendre à la vitesse minimale de base
     }
+
+	if (_speed < MAX_SPEED) {
+		_speed += 0.5f;
+	}
     else {
-        _speed += 1.0F;
-        if (_speed > MAX_SPEED) {
-            _speed = MAX_SPEED;
-        }
+        _speed = MAX_SPEED;
     }
 }
 
 void Vehicule::SpeedDown() {
-    _speed -= 1.0F;
-    if (_speed < 0) {
+    if (_speed > 0) {
+        _speed -= 0.5f;
+    }
+    else {
         _speed = 0;
     }
 }
@@ -313,9 +405,15 @@ void Vehicule::setTexture(const sf::Texture& texture) {
 }
 
 void Vehicule::determinePath(int direction) {
-    _currentPath.clear();
-    _currentPath.push_back(_paths[direction]);
-    _currentPathIndex = 0;
+    std::cout << "Determining path for direction: " << direction << std::endl;
+    if (_paths.find(direction) != _paths.end()) {
+        _currentPath.clear();
+        _currentPath.push_back(_paths[direction]);
+        _currentPathIndex = 0;
+    }
+    else {
+        std::cerr << "Error: Invalid direction " << direction << std::endl;
+    }
 }
 
 void Vehicule::setDirections(const std::vector<int>& directions) {
@@ -367,4 +465,11 @@ void Vehicule::updateSpriteRotation() {
         break;
     }
     _Sprite.setRotation(_angle);
+}
+
+//----------------------------------------------------------------
+
+bool Vehicule::operator==(const Vehicule& other) const {
+    return this == &other;
+	//return _x == other._x && _y == other._y && _angle == other._angle && _direction == other._direction;
 }

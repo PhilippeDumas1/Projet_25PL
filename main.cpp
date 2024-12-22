@@ -2,6 +2,7 @@
 #include <vector>
 #include <thread>
 #include <cmath>
+#include <mutex>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include "Feucircu.hpp"
@@ -23,36 +24,7 @@ enum SpawnPoint {
 	DB, // Début bas
 };
 
-std::vector<Path> carPaths = {
-    { {sf::Vector2f(0, 575), sf::Vector2f(1000, 575)} },
-    { {sf::Vector2f(0, 575), sf::Vector2f(425, 575), sf::Vector2f(425, 1000)} },
-    { {sf::Vector2f(1000, 450), sf::Vector2f(0, 450)} },
-    { {sf::Vector2f(450, 1000), sf::Vector2f(450, 0)} }
-};
 
-class VehicleGenerator {
-public:
-    VehicleGenerator(sf::Texture& carTexture, std::vector<Path>& paths)
-        : carTexture(carTexture), paths(paths) {
-    }
-
-    void generateVehicles(std::vector<Vehicule>& vehicules, float deltaTime) {
-        spawnTimer += deltaTime;
-        if (spawnTimer >= spawnInterval) {
-            spawnTimer = 0.0f;
-            int spawnPoint = rand() % 4; // Choisir un point de spawn aléatoire
-            Vehicule newCar(spawnPoint, 0, 1, carTexture);
-            newCar.setDirections({ 0, 1, 2, 3 }); // Exemple de directions à suivre
-            vehicules.push_back(newCar);
-        }
-    }
-
-private:
-    sf::Texture& carTexture;
-    std::vector<Path>& paths;
-    float spawnTimer = 0.0f;
-    const float spawnInterval = 5.0f; // Intervalle de temps entre les spawns (en secondes)
-};
 
 
 int main() {
@@ -69,8 +41,12 @@ int main() {
 	// Initialisation des véhicules
     std::vector<Vehicule> vehicules;
     Vehicule newCar(DG, 0, 1, carTexture);
-    newCar.setDirections({ 2 }); // Assigner la direction spécifique
+    newCar.setDirections({ 0 }); // Assigner la direction spécifique
     vehicules.push_back(newCar);
+    Vehicule newCar1(DH, 0, 1, carTexture);
+    newCar1.setDirections({ 3 }); // Assigner la direction spécifique
+    //vehicules.push_back(newCar1);
+
 
     //VehicleGenerator vehicleGenerator(carTexture, carPaths);
     /*
@@ -79,32 +55,83 @@ int main() {
         std::cout << "Position de la voiture: (" << sprite.getPosition().x << ", " << sprite.getPosition().y << ")" << std::endl;
         std::cout << "Taille de la voiture: (" << sprite.getGlobalBounds().width << ", " << sprite.getGlobalBounds().height << ")" << std::endl;
     }
-    */
+   
 
     // Initialisation des feux
-    Traffic_light traffic_light_master{ Traffic_color::red, sf::Vector2f(350, 575) };
-    Traffic_light traffic_light_slave{ Traffic_color::green, sf::Vector2f(475, 650) };
+    Traffic_light traffic_light_master{ Traffic_color::green, sf::Vector2f(350, 575) };
+    Traffic_light traffic_light_master1{ Traffic_color::green, sf::Vector2f(350, 625) };
+    Traffic_light traffic_light_slave{ Traffic_color::red, sf::Vector2f(475, 650) };
+	Traffic_light traffic_light_slave1{ Traffic_color::red, sf::Vector2f(525, 650) };
+	Traffic_light traffic_light_master2{ Traffic_color::green, sf::Vector2f(550, 525) };
+	Traffic_light traffic_light_master3{ Traffic_color::green, sf::Vector2f(550, 475) };
+	Traffic_light traffic_light_slave2{ Traffic_color::red, sf::Vector2f(425, 450) };
+	Traffic_light traffic_light_slave3{ Traffic_color::red, sf::Vector2f(375, 450) };
+	Traffic_light traffic_light_slave4{ Traffic_color::red, sf::Vector2f(425, 250) };
+	Traffic_light traffic_light_slave5{ Traffic_color::red, sf::Vector2f(375, 250) };
 
     std::vector<Traffic_light*> traffic_lights;
     traffic_lights.push_back(&traffic_light_master);
+	traffic_lights.push_back(&traffic_light_master1);
+    traffic_lights.push_back(&traffic_light_master2);
+	traffic_lights.push_back(&traffic_light_master3);
     traffic_lights.push_back(&traffic_light_slave);
+	traffic_lights.push_back(&traffic_light_slave1);
+	traffic_lights.push_back(&traffic_light_slave2);
+	traffic_lights.push_back(&traffic_light_slave3);
+	traffic_lights.push_back(&traffic_light_slave4);
+	traffic_lights.push_back(&traffic_light_slave5);
 
-    traffic_lights.push_back(new Traffic_light(Traffic_color::red, sf::Vector2f(350, 575)));
-    traffic_lights.push_back(new Traffic_light(Traffic_color::red, sf::Vector2f(350, 625)));
-    traffic_lights.push_back(new Traffic_light(Traffic_color::green, sf::Vector2f(475, 650)));
-    traffic_lights.push_back(new Traffic_light(Traffic_color::green, sf::Vector2f(525, 650)));
-    traffic_lights.push_back(new Traffic_light(Traffic_color::red, sf::Vector2f(550, 525)));
-    traffic_lights.push_back(new Traffic_light(Traffic_color::red, sf::Vector2f(550, 475)));
-    traffic_lights.push_back(new Traffic_light(Traffic_color::green, sf::Vector2f(425, 450)));
-    traffic_lights.push_back(new Traffic_light(Traffic_color::green, sf::Vector2f(375, 450)));
+     */
 
-    // Fenêtre SFML
+    std::mutex traffic_light_mutex;
+
+    sf::Vector2f position_master(475.0f, 450.0f);
+    sf::Vector2f position_slave(425.0f, 575.0f);
+
+    Traffic_light traffic_light_master{ Traffic_color::red, sf::Vector2f(350, 575) };
+    Traffic_light traffic_light_master1{ Traffic_color::red, sf::Vector2f(350, 625) };
+    Traffic_light traffic_light_slave{ Traffic_color::red, sf::Vector2f(475, 650) };
+    Traffic_light traffic_light_slave1{ Traffic_color::red, sf::Vector2f(525, 650) };
+    Traffic_light traffic_light_master2{ Traffic_color::red, sf::Vector2f(550, 525) };
+    Traffic_light traffic_light_master3{ Traffic_color::red, sf::Vector2f(550, 475) };
+    Traffic_light traffic_light_slave2{ Traffic_color::red, sf::Vector2f(425, 450) };
+    Traffic_light traffic_light_slave3{ Traffic_color::red, sf::Vector2f(375, 450) };
+    Traffic_light traffic_light_slave4{ Traffic_color::red, sf::Vector2f(425, 250) };
+    Traffic_light traffic_light_slave5{ Traffic_color::red, sf::Vector2f(375, 250) };
+
+    // Ajout des feux au vecteur FeuTab
+    std::vector<Traffic_light*> FeuTab = {
+        &traffic_light_master,
+        &traffic_light_master1,
+        &traffic_light_slave,
+        &traffic_light_slave1,
+        &traffic_light_master2,
+        &traffic_light_master3,
+        &traffic_light_slave2,
+        &traffic_light_slave3,
+        &traffic_light_slave4,
+        &traffic_light_slave5
+    };
+
     std::stop_source stopping;
 
-    std::jthread thread_traffic_light(run_traffic_light,std::ref(traffic_light_master),std::ref(traffic_light_slave),stopping.get_token());
-    std::jthread write_traffic_light(print_traffic_light, std::ref(traffic_light_master), std::ref(traffic_light_slave), stopping.get_token());
+    TrafficLightController controller(FeuTab);
 
+    // Lancement du thread pour gérer les feux
+    std::jthread traffic_light_thread(run_traffic_light_multiple, std::ref(FeuTab), std::ref(traffic_light_mutex), stopping.get_token());
+
+    // Correction ici : passez le stop_token à la méthode run
+    std::jthread trafficLightThread(&TrafficLightController::run, &controller, stopping.get_token());
+
+    // Log the positions of the traffic lights
+    for (const auto& light : FeuTab) {
+        std::cout << "Traffic light position: (" << light->get_position().x << ", " << light->get_position().y << ")" << std::endl;
+    }
+
+    // Fenêtre SFML
     sf::RenderWindow window(sf::VideoMode(WINDOW_SIZE_HORIZ, WINDOW_SIZE_VERTI), "Traffic Simulation");
+
+    std::jthread write_traffic_light(print_traffic_light, std::ref(traffic_light_master), std::ref(traffic_light_slave), stopping.get_token());
 
     sf::Vertex MG[] = { sf::Vertex(sf::Vector2f(0, 550)), sf::Vertex(sf::Vector2f(350, 550)) };
 	sf::Vertex CBG1[] = { sf::Vertex(sf::Vector2f(0, 650)), sf::Vertex(sf::Vector2f(350, 650)) };
@@ -120,9 +147,6 @@ int main() {
 	sf::Vertex MB[] = { sf::Vertex(sf::Vector2f(450, 650)), sf::Vertex(sf::Vector2f(450, 1000)) };
     sf::Vertex CBD1[] = { sf::Vertex(sf::Vector2f(550, 650)), sf::Vertex(sf::Vector2f(550, 1000)) };
     sf::Vertex CBD2[] = { sf::Vertex(sf::Vector2f(550, 650)), sf::Vertex(sf::Vector2f(1000, 650)) };
-
-	sf::Vertex DVB[] = { sf::Vertex(sf::Vector2f(450, 575)), sf::Vertex(sf::Vector2f(1000, 575)) };
-
 
     sf::Vertex MD[] = { sf::Vertex(sf::Vector2f(550, 550)), sf::Vertex(sf::Vector2f(1000, 550)) };
     sf::Vertex CHD1[] = { sf::Vertex(sf::Vector2f(550, 450)), sf::Vertex(sf::Vector2f(1000, 450)) };
@@ -150,9 +174,8 @@ int main() {
         //vehicleGenerator.generateVehicles(vehicules, deltaTime);
 
         for (auto it = vehicules.begin(); it != vehicules.end();) {
-            it->move(vehicules, traffic_lights, deltaTime);
-            std::cout << "Position de la voiture après move: (" << it->getX() << ", " << it->getY() << ")" << std::endl;
-
+            it->move(vehicules, FeuTab, traffic_light_mutex, deltaTime);
+            
             // Check if the vehicle is out of bounds
             if (it->isOutOfBounds(WINDOW_SIZE_HORIZ, WINDOW_SIZE_VERTI)) {
                 it = vehicules.erase(it); // Remove the vehicle from the vector
@@ -180,8 +203,6 @@ int main() {
 		window.draw(CBD1, 2, sf::Lines);
 		window.draw(CBD2, 2, sf::Lines);
 
-		window.draw(DVB, 2, sf::Lines);
-
 		window.draw(MD, 2, sf::Lines);
 		window.draw(CHD1, 2, sf::Lines);
 		window.draw(CHD2, 2, sf::Lines);
@@ -189,6 +210,7 @@ int main() {
 		window.draw(MH, 2, sf::Lines);
 		window.draw(CHG1, 2, sf::Lines);
         window.draw(CHG2, 2, sf::Lines);
+        
         
         //Update traffic lights
         sf::CircleShape circle1A(radius);
@@ -231,6 +253,16 @@ int main() {
         circle2D.setOrigin(circle2D.getRadius() / 2, circle2D.getRadius() / 2);
         circle2D.setPosition(375,450);
 
+        sf::CircleShape circle3D(radius);
+        circle3D.setFillColor(get_SFML_color(traffic_light_slave));
+        circle3D.setOrigin(circle3D.getRadius() / 2, circle3D.getRadius() / 2);
+        circle3D.setPosition(425, 250);
+
+        sf::CircleShape circle4D(radius);
+        circle4D.setFillColor(get_SFML_color(traffic_light_slave));
+        circle4D.setOrigin(circle4D.getRadius() / 2, circle4D.getRadius() / 2);
+        circle4D.setPosition(375, 250);
+
         window.draw(circle1A);
         window.draw(circle1B);
 
@@ -242,14 +274,36 @@ int main() {
 
         window.draw(circle1D);
         window.draw(circle2D);
+        window.draw(circle3D);
+        window.draw(circle4D);
        
+
+        /* 
+        {
+            std::lock_guard<std::mutex> lock(traffic_light_mutex);
+            for (const auto& light : FeuTab) {
+                sf::CircleShape lightShape(radius);
+                lightShape.setFillColor(get_SFML_color(*light));
+                lightShape.setOrigin(radius / 2, radius / 2);
+                lightShape.setPosition(light->get_position());
+                window.draw(lightShape);
+            }
+        }
+        */
 
         for (auto& vehicule : vehicules) {
             window.draw(vehicule.getSprite());
+        }
+
+        for (auto& vehicule : vehicules) {
+            vehicule.move(vehicules, FeuTab, traffic_light_mutex, deltaTime);
         }
        
         window.display();
     }
 
+    stopping.request_stop();
+    traffic_light_thread.join();
+
     return 0;
-};
+}
