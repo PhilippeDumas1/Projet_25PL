@@ -50,7 +50,6 @@ sf::FloatRect Traffic_light::getExpandedBounds(float extraLength) {
     return bounds;
 }
 
-
 sf::FloatRect Traffic_light::getGlobalBounds() const {
     return sf::FloatRect(position_.x - 10.0f, position_.y - 10.0f, 20.0f, 20.0f); // Example of a smaller size 20x20
 }
@@ -118,69 +117,16 @@ void print_traffic_light(Traffic_light& traffic_light_master, Traffic_light& tra
     }
 }
 
+void run_traffic_light_multiple(std::vector<Traffic_light*>& FeuTab, std::vector<std::vector<Traffic_light*>>& phases, std::mutex& traffic_light_mutex, std::stop_token stop_token) {
 
-void run_traffic_light_multiple(std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex, std::stop_token stop_token) {
-    const int time_waiting = 10; // Temps vert
-    const int time_transit = 2;  // Temps orange
-
+    const int time_green = 10;   // Temps vert
+    const int time_orange = 2;   // Temps orange
     size_t currentIndex = 0;
-    size_t numLights = FeuTab.size();
 
-    if (FeuTab.size() < 4) {
-        std::cerr << "Erreur : FeuTab doit contenir au moins 4 feux pour les phases." << std::endl;
+    if (phases.empty()) {
+        std::cerr << "Erreur : Le vecteur 'phases' n'a pas été initialisé." << std::endl;
         return;
     }
-
-    while (!stop_token.stop_requested()) {
-        {
-            std::lock_guard<std::mutex> lock(traffic_light_mutex);
-            for (auto& light : FeuTab) {
-                light->set_traffic_color(Traffic_color::red);
-            }
-        }
-
-        std::this_thread::sleep_for(std::chrono::seconds(time_waiting));
-
-        // Passer les feux de la phase actuelle à l'orange
-        {
-            std::lock_guard<std::mutex> lock(traffic_light_mutex);
-            if (currentIndex < phases.size()) {
-                for (auto& light : phases[currentIndex]) {
-                    ++(*light); // Passe de vert à orange
-                }
-            }
-            else {
-                std::cerr << "Erreur : currentIndex hors limites." << std::endl;
-                return;
-            }
-        }
-
-        std::this_thread::sleep_for(std::chrono::seconds(time_transit));
-
-        // Passer les feux de la phase actuelle au rouge et passer à la phase suivante
-        {
-            std::lock_guard<std::mutex> lock(traffic_light_mutex);
-            if (currentIndex < phases.size()) {
-                for (auto& light : phases[currentIndex]) {
-                    ++(*light); // Passe d'orange à rouge
-                }
-                currentIndex = (currentIndex + 1) % phases.size();
-            }
-            else {
-                std::cerr << "Erreur : currentIndex hors limites." << std::endl;
-                return;
-            }
-        }
-    }
-}
-
-/*
-void run_traffic_light_multiple(std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex, std::stop_token stop_token) {
-    const int time_waiting = 10; // Temps d'attente avant de changer de couleur (en secondes)
-    const int time_transit = 2;  // Temps de transition pour le feu orange (en secondes)
-
-    size_t currentIndex = 0;
-    size_t numLights = FeuTab.size();
 
     while (!stop_token.stop_requested()) {
         // Mettre tous les feux au rouge
@@ -191,30 +137,37 @@ void run_traffic_light_multiple(std::vector<Traffic_light*>& FeuTab, std::mutex&
             }
         }
 
-        // Mettre le feu courant au vert
+        // Passer les feux de la phase actuelle au vert
         {
             std::lock_guard<std::mutex> lock(traffic_light_mutex);
-            FeuTab[currentIndex]->set_traffic_color(Traffic_color::green);
+            for (auto& light : phases[currentIndex]) {
+                light->set_traffic_color(Traffic_color::green);
+            }
         }
 
-        // Attendre pendant le temps de passage
-        std::this_thread::sleep_for(std::chrono::seconds(time_waiting));
+        // Attendre le temps du feu vert
+        std::this_thread::sleep_for(std::chrono::seconds(time_green));
 
-        // Passer le feu courant à l'orange
+        // Passer les feux de la phase actuelle à l'orange
         {
             std::lock_guard<std::mutex> lock(traffic_light_mutex);
-            ++(*FeuTab[currentIndex]); // Change la couleur du feu
+            for (auto& light : phases[currentIndex]) {
+                light->set_traffic_color(Traffic_color::orange);
+            }
         }
 
-        // Attendre le temps de transition
-        std::this_thread::sleep_for(std::chrono::seconds(time_transit));
+        // Attendre le temps du feu orange
+        std::this_thread::sleep_for(std::chrono::seconds(time_orange));
 
-        // Passer le feu courant au rouge et passer au suivant
+        // Remettre les feux de la phase actuelle au rouge
         {
             std::lock_guard<std::mutex> lock(traffic_light_mutex);
-            FeuTab[currentIndex]->set_traffic_color(Traffic_color::red);
-            currentIndex = (currentIndex + 1) % numLights;
+            for (auto& light : phases[currentIndex]) {
+                light->set_traffic_color(Traffic_color::red);
+            }
         }
+
+        // Passer à la phase suivante
+        currentIndex = (currentIndex + 1) % phases.size();
     }
 }
-*/

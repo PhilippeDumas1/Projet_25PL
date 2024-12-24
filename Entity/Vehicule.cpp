@@ -29,14 +29,14 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin)
     setTexture(Skin);
 
     _paths = {
-        {0, {{sf::Vector2f(0, 575), sf::Vector2f(1000, 575)}}},//Chemin voiture Gauche
+        {0, {{sf::Vector2f(0, 575), sf::Vector2f(1100, 575)}}},//Chemin voiture Gauche
         {1, {{sf::Vector2f(0, 575), sf::Vector2f(425, 575), sf::Vector2f(425, 1000)}}},
         {2, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, 0)}}},
-        {3, {{sf::Vector2f(425, 0), sf::Vector2f(425, 1000)}}},//chemin voitue Haut
+        {3, {{sf::Vector2f(425, 0), sf::Vector2f(425, 1000)}}},//Chemin voitue Haut
         {4, {{sf::Vector2f(425, 0), sf::Vector2f(425, 475), sf::Vector2f(0, 475)}}},
         {5, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, 0)}}},
-        {6, {{sf::Vector2f(1000, 450), sf::Vector2f(0, 450)}}},
-        {7, {{sf::Vector2f(1000, 450), sf::Vector2f(0, 450)}}},
+        {6, {{sf::Vector2f(1000, 525), sf::Vector2f(0, 525)}}},//Chemin Voiture Droite
+        {7, {{sf::Vector2f(1000, 525), sf::Vector2f(425, 525), sf::Vector2f(425, 1000)}}},
         {8, {{sf::Vector2f(1000, 450), sf::Vector2f(0, 450)}}},
         {9, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}},
         {10, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}},
@@ -64,9 +64,9 @@ Vehicule::Vehicule(int spawn, int direction, int type, sf::Texture& Skin)
         break;
     case DD:
         switch (_VehiculeType) {
-        case 1: _x = 1000; _y = 450; break; // Voiture
+        case 1: _x = 1000; _y = 525; break; // Voiture
         case 2: _x = 1000; _y = 500; break; // Bus
-        case 3: _x = 1000; _y = 550; break; // Vélo
+        case 3: _x = 1000; _y = 475; break; // Vélo
         default: _x = 0; _y = 0; break;
         }
         _angle = 180; // Déplacement vers la gauche
@@ -241,55 +241,6 @@ void Vehicule::drawDetectionSquare(sf::RenderWindow& window, std::vector<Vehicul
 
 //----------------------------------------------------------------
 
-/*
-void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, float deltaTime) {
-    if (CanGoForward(Vehicules, FeuTab)) {
-        if (_speed == 0) {
-            SpeedUp();
-        }
-
-        if (_currentPathIndex < _currentPath[_currentDirectionIndex].points.size()) {
-            sf::Vector2f target = _currentPath[_currentDirectionIndex].points[_currentPathIndex];
-            sf::Vector2f direction = target - sf::Vector2f(_x, _y);
-            float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-            sf::Vector2f unitDirection = direction / length;
-
-            if (length != 0) {
-                _x += unitDirection.x * _speed * deltaTime;
-                _y += unitDirection.y * _speed * deltaTime;
-            }
-
-            setPos(_x, _y);
-            _Sprite.setPosition(_x, _y);
-
-            // Vérifier si le véhicule a atteint la fin du segment de chemin actuel
-            if (std::abs(_x - target.x) < 1.0f && std::abs(_y - target.y) < 1.0f) {
-                _currentPathIndex++;
-                
-                if (_currentPathIndex < _currentPath[_currentDirectionIndex].points.size()) {
-                    updateDirection(_currentPath[_currentDirectionIndex].points[_currentPathIndex]);
-                    updateSpriteRotation();
-                }
-                else {
-                    _currentPathIndex = 0;
-                    _currentDirectionIndex++;
-                    if (_currentDirectionIndex < _directions.size()) {
-                        determinePath(_directions[_currentDirectionIndex]);
-                        updateDirection(_currentPath[_currentDirectionIndex].points[_currentPathIndex]);
-                        updateSpriteRotation();
-                    }
-                }
-            }
-        }
-    }
-    else {
-        SpeedDown();
-    }
-}
-*/
-
-//---
-
 void Vehicule::move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex, float deltaTime) {
     if (CanGoForward(Vehicules, FeuTab, traffic_light_mutex)) {
         if (_state == STOPPED || _state == SLOWING_DOWN) {
@@ -378,9 +329,18 @@ void Vehicule::SpeedUp() {
 void Vehicule::SpeedDown() {
     if (_speed > 0) {
         _speed -= 0.5f;
+        if (_speed <= 0) {
+            _speed = 0;
+            _state = STOPPED;
+            std::cout << "Véhicule arrêté." << std::endl;
+        }
+        else {
+            _state = SLOWING_DOWN;
+        }
     }
     else {
         _speed = 0;
+        _state = STOPPED;
     }
 }
 

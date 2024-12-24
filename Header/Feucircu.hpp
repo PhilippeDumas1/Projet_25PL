@@ -44,25 +44,6 @@ std::ostream& operator<<(std::ostream& os, const Traffic_light& traffic_light);
 std::ostream& operator<<(std::ostream& os, const Traffic_color& color);
 
 void print_traffic_light(Traffic_light& traffic_light_master, Traffic_light& traffic_light_slave, std::stop_token stop_token);
-void run_traffic_light_multiple(std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex, std::stop_token stop_token);
-
-class TrafficLightController {
-public:
-    TrafficLightController(std::vector<Traffic_light*>& lights)
-        : lights_(lights), currentPhaseIndex_(0) {
-        // Initialiser les phases
-        // Exemple : phases_.push_back({lights_[0], lights_[2]}); // Feux opposés
-    }
-
-    void run(std::stop_token stop_token) {
-        // Implémenter la logique de gestion des feux ici
-    }
-
-private:
-    std::vector<Traffic_light*>& lights_;
-    std::vector<std::vector<Traffic_light*>> phases_;
-    size_t currentPhaseIndex_;
-    // Autres membres privés pour les timings, etc.
-};
+void run_traffic_light_multiple(std::vector<Traffic_light*>& FeuTab, std::vector<std::vector<Traffic_light*>>& phases, std::mutex& traffic_light_mutex, std::stop_token stop_token);
 
 #endif // TRAFFIC_LIGHT_HPP
