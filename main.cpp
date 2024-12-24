@@ -8,6 +8,7 @@
 #include "Feucircu.hpp"
 #include "Vehicule.hpp"
 #include <filesystem>
+#include <random>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -22,6 +23,51 @@ enum SpawnPoint {
 	DG, // Début gauche
 	DD, // Début droite
 	DB, // Début bas
+};
+
+void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTexture) {
+    // Générateur aléatoire pour les positions de spawn et directions
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> spawnDist(0, 3);   // Pour DH, DG, DD, DB
+    std::uniform_int_distribution<> directionDist(0, 7); // Directions possibles de 0 à 7
+    //std::uniform_int_distribution<> typeDist(0, 2);    // Exemple: type de véhicule (0, 1, ou 2)
+
+    // Générer un spawn aléatoire
+    int spawn = 3;
+    int direction = directionDist(gen);  // Direction aléatoire
+    int Ddirection = 0;
+    int type = 1;
+
+    // Définir Ddirection en fonction du spawn
+    switch (spawn) {
+    case 0: // DH
+        Ddirection = 3;
+        break;
+    case 1: // DG
+        Ddirection = 1;
+        break;
+    case 2: // DD
+        Ddirection = 7;
+        break;
+    case 3: // DB 
+        Ddirection = 10;  // Exemple par défaut
+        break;
+    default:
+        break;
+    }
+
+    // Créer un véhicule avec les propriétés générées
+    Vehicule newVehicle(spawn, direction, type, carTexture);
+    newVehicle.setDirections({ Ddirection }); // Assigner la direction
+
+    // Ajouter le véhicule au vecteur
+    vehicules.push_back(newVehicle);
+
+    std::cout << "Nouveau véhicule généré: spawn=" << spawn
+        << ", direction=" << direction
+        << ", type=" << type
+        << ", Ddirection=" << Ddirection << std::endl;
 };
 
 int main() {
@@ -48,15 +94,6 @@ int main() {
     vehicules.push_back(newCar2);
 
 
-    //VehicleGenerator vehicleGenerator(carTexture, carPaths);
-    /*
-    for (auto& vehicule : vehicules) {
-        sf::Sprite sprite = vehicule.getSprite();
-        std::cout << "Position de la voiture: (" << sprite.getPosition().x << ", " << sprite.getPosition().y << ")" << std::endl;
-        std::cout << "Taille de la voiture: (" << sprite.getGlobalBounds().width << ", " << sprite.getGlobalBounds().height << ")" << std::endl;
-    }
-     */
-   
     std::mutex traffic_light_mutex;
 
     Traffic_light traffic_light_master{ Traffic_color::green, sf::Vector2f(350, 575) };
@@ -127,6 +164,7 @@ int main() {
     bool running = true;
 
     sf::Clock clock;
+    sf::Clock vehicleSpawnClock;
 
     while (window.isOpen()) {
         sf::Event event;
@@ -139,14 +177,17 @@ int main() {
         
         float deltaTime = clock.restart().asSeconds();
 
-        //vehicleGenerator.generateVehicles(vehicules, deltaTime);
+        if (vehicleSpawnClock.getElapsedTime().asSeconds() > 4.0f) {
+            generateRandomVehicles(vehicules, carTexture);
+            vehicleSpawnClock.restart();
+        }
 
         for (auto it = vehicules.begin(); it != vehicules.end();) {
             it->move(vehicules, FeuTab, traffic_light_mutex, deltaTime);
-            
-            // Check if the vehicle is out of bounds
+
+            // Supprimer les véhicules hors des limites
             if (it->isOutOfBounds(WINDOW_SIZE_HORIZ, WINDOW_SIZE_VERTI)) {
-                it = vehicules.erase(it); // Remove the vehicle from the vector
+                it = vehicules.erase(it);
             }
             else {
                 ++it;

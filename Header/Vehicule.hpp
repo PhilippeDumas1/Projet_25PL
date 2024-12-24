@@ -62,28 +62,5 @@ private:
 };
 
 
-class VehicleGenerator {
-public:
-    VehicleGenerator(sf::Texture& carTexture, std::vector<Path>& paths)
-        : carTexture(carTexture), paths(paths) {
-    }
-
-    void generateVehicles(std::vector<Vehicule>& vehicules, float deltaTime) {
-        spawnTimer += deltaTime;
-        if (spawnTimer >= spawnInterval) {
-            spawnTimer = 0.0f;
-            int spawnPoint = rand() % 4; // Choisir un point de spawn aléatoire
-            Vehicule newCar(spawnPoint, 0, 1, carTexture);
-            newCar.setDirections({ 0, 1, 2, 3 }); // Exemple de directions à suivre
-            vehicules.push_back(newCar);
-        }
-    }
-
-private:
-    sf::Texture& carTexture;
-    std::vector<Path>& paths;
-    float spawnTimer = 0.0f;
-    const float spawnInterval = 5.0f; // Intervalle de temps entre les spawns (en secondes)
-};
 
 #endif 
