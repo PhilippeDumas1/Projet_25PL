@@ -34,7 +34,7 @@ void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTe
     //std::uniform_int_distribution<> typeDist(0, 2);    // Exemple: type de véhicule (0, 1, ou 2)
 
     // Générer un spawn aléatoire
-    int spawn = 3;
+    int spawn = spawnDist(gen);
     int direction = directionDist(gen);  // Direction aléatoire
     int Ddirection = 0;
     int type = 1;
