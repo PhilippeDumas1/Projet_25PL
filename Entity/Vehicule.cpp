@@ -42,7 +42,7 @@
             {9, {{sf::Vector2f(475, 1000), sf::Vector2f(475, -50)}}},//Chemin Voiture Bas
             {10, {{sf::Vector2f(475, 1000), sf::Vector2f(475, 525), sf::Vector2f(-50, 525)}}},
             {11, {{sf::Vector2f(475, 1000), sf::Vector2f(475, 575), sf::Vector2f(1050, 575)}}},
-            //Chemin des Bus
+            //Chemin des Bus/vélo
 			{12, {{sf::Vector2f(0, 625), sf::Vector2f(1050, 625)}}},//Chemin Bus Gauche
             {13, {{sf::Vector2f(0, 625), sf::Vector2f(375, 625), sf::Vector2f(375, 1050)}}},
             {14, {{sf::Vector2f(375, 0), sf::Vector2f(375, 1050)}}},//Chemin Bus Haut
@@ -51,9 +51,6 @@
 			{17, {{sf::Vector2f(1000, 475), sf::Vector2f(525, 475), sf::Vector2f(525, -50)}}},
 			{18, {{sf::Vector2f(525, 1000), sf::Vector2f(525, -50)}}},//Chemin Bus Bas
             {19, {{sf::Vector2f(525, 1000), sf::Vector2f(525, 625), sf::Vector2f(-50, 625)}}}
-
-
-
         };
 
         switch (spawn) {
@@ -98,7 +95,6 @@
         }
 
         _speed = 25.0F;
-        _Patience = 0;
         _direction = (direction % 4);
         _directionPos = sf::Vector2f(
             static_cast<float>(-WINDOW_SIZE_VERTI / 2 * sin(M_PI / 2 * _direction) * cos(M_PI / 2 * _direction)),                         
@@ -111,6 +107,7 @@
         }
 
         if (_VehiculeType == Car) {
+            _Patience = 1;
             _Sprite.setScale(0.5f, 0.5f); // Échelle pour la voiture
             setPos(_x, _y);
             setAngle(_angle);
@@ -118,6 +115,7 @@
             _Sprite.setRotation(_angle);
         }
         else if (_VehiculeType == Bus) {
+            _Patience = 2;
             _Sprite.setScale(0.15f, 0.15f); // Échelle plus grande pour le bus
             setPos(_x, _y);
             setAngle(_angle);
@@ -125,6 +123,7 @@
             _Sprite.setRotation(_angle);
         }
         else if (_VehiculeType == Bike) {
+            _Patience = 0;
             _Sprite.setScale(0.10f, 0.10f); // Échelle plus petite pour le vélo
             setPos(_x, _y);
             setAngle(_angle);
@@ -182,10 +181,47 @@
     //extern std::mutex traffic_light_mutex; // Assurez-vous que le mutex est accessible ici
 
     bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex) {
-        sf::FloatRect expandedBounds = getExpandedBounds(10.0f);
+        sf::FloatRect expandedBounds = getExpandedBounds(2.5f);
 
+        // Vérifier les feux de signalisation
+        {
+            std::lock_guard<std::mutex> lock(traffic_light_mutex);
+
+            for (auto& feu : FeuTab) {
+                if (expandedBounds.intersects(feu->getGlobalBounds())) {
+                    if (feu->get_traffic_color() == Traffic_color::red) {
+                        return false;
+                    }
+                    else if (feu->get_traffic_color() == Traffic_color::orange) {
+                        SpeedDown();
+                        return true;
+                    }
+                    else if (feu->get_traffic_color() == Traffic_color::green) {
+                        // Si le feu est vert, vérifier les véhicules devant
+                        for (auto& vehicule : Vehicules) {
+                            if (this != &vehicule && expandedBounds.intersects(vehicule.getExpandedBounds(2.5f))) {
+                                if (_speed == 0 && vehicule._speed == 0) {
+                                    if (_Patience > vehicule._Patience) {
+                                        vehicule.SpeedDown();
+                                        return true;
+                                    }
+                                    else {
+                                        SpeedDown();
+                                        return false;
+                                    }
+                                }
+                                return false; // Collision détectée
+                            }
+                        }
+                        return true; // Aucun obstacle détecté
+                    }
+                }
+            }
+        }
+
+        // Vérifier les véhicules devant
         for (auto& vehicule : Vehicules) {
-            if (this != &vehicule && expandedBounds.intersects(vehicule.getExpandedBounds(10.0f))) {
+            if (this != &vehicule && expandedBounds.intersects(vehicule.getExpandedBounds(2.5f))) {
                 if (_speed == 0 && vehicule._speed == 0) {
                     if (_Patience > vehicule._Patience) {
                         vehicule.SpeedDown();
@@ -200,23 +236,6 @@
             }
         }
 
-        {
-            std::lock_guard<std::mutex> lock(traffic_light_mutex);
-
-            for (auto& feu : FeuTab) {
-                if (expandedBounds.intersects(feu->getGlobalBounds())) {
-                    //std::cout << "Feu détecté: " << feu->get_traffic_color() << " à la position (" << feu->get_position().x << ", " << feu->get_position().y << ")" << std::endl;
-                    if (feu->get_traffic_color() == Traffic_color::red) {
-                        return false;
-                    }else if (feu->get_traffic_color() == Traffic_color::orange) {
-                        SpeedDown();
-                        return true;
-                    }else if (feu->get_traffic_color() == Traffic_color::green) {
-                        return true;
-                    }
-                }
-            }
-        }
         return true; // Aucun obstacle détecté
     }
 

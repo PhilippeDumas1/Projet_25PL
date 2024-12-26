@@ -191,16 +191,16 @@ int main() {
 
     std::mutex traffic_light_mutex;
 
-    Traffic_light traffic_light_master{ Traffic_color::green, sf::Vector2f(330, 575) };
-    Traffic_light traffic_light_master1{ Traffic_color::green, sf::Vector2f(330, 625) };
-    Traffic_light traffic_light_slave{ Traffic_color::red, sf::Vector2f(475, 700) };
-    Traffic_light traffic_light_slave1{ Traffic_color::red, sf::Vector2f(525, 700) };
-    Traffic_light traffic_light_master2{ Traffic_color::green, sf::Vector2f(600, 525) };
-    Traffic_light traffic_light_master3{ Traffic_color::green, sf::Vector2f(600, 475) };
-    Traffic_light traffic_light_slave2{ Traffic_color::red, sf::Vector2f(425, 420) };
-    Traffic_light traffic_light_slave3{ Traffic_color::red, sf::Vector2f(375, 420) };
-    Traffic_light traffic_light_slave4{ Traffic_color::red, sf::Vector2f(425, 250) };
-    Traffic_light traffic_light_slave5{ Traffic_color::red, sf::Vector2f(375, 250) };
+    Traffic_light traffic_light_master{ Traffic_color::red, sf::Vector2f(330, 575) };
+    Traffic_light traffic_light_master1{ Traffic_color::red, sf::Vector2f(330, 625) };
+    Traffic_light traffic_light_slave{ Traffic_color::green, sf::Vector2f(475, 675) };
+    Traffic_light traffic_light_slave1{ Traffic_color::green, sf::Vector2f(525, 675) };
+    Traffic_light traffic_light_master2{ Traffic_color::red, sf::Vector2f(600, 525) };
+    Traffic_light traffic_light_master3{ Traffic_color::red, sf::Vector2f(600, 475) };
+    Traffic_light traffic_light_slave2{ Traffic_color::green, sf::Vector2f(425, 425) };
+    Traffic_light traffic_light_slave3{ Traffic_color::green, sf::Vector2f(375, 425) };
+    Traffic_light traffic_light_slave4{ Traffic_color::green, sf::Vector2f(425, 250) };
+    Traffic_light traffic_light_slave5{ Traffic_color::green, sf::Vector2f(375, 250) };
 
     // Ajout des feux au vecteur FeuTab
     std::vector<Traffic_light*> FeuTab = {
