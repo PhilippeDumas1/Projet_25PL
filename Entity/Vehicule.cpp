@@ -116,7 +116,7 @@
         }
         else if (_VehiculeType == Bus) {
             _Patience = 2;
-            _Sprite.setScale(0.15f, 0.15f); // Échelle plus grande pour le bus
+            _Sprite.setScale(0.2f, 0.2f); // Échelle plus grande pour le bus
             setPos(_x, _y);
             setAngle(_angle);
             _Sprite.setPosition(_x, _y);
@@ -153,75 +153,44 @@
 
     //----------------------------------------------------------------
 
-    //Fonction utilisé nul part
-    bool Vehicule::CanTurnLeft(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
-        for (auto& feu : FeuTab) {
-            if (feu->get_traffic_color() == Traffic_color::red) {
-                return false;
-            }
-        }
-
-        // Vérifier s'il y a un autre véhicule dans la zone de détection
-        sf::FloatRect expandedBounds = getExpandedBounds(10.0f);
-        for (auto& vehicule : Vehicules) {
-            if (this != &vehicule && expandedBounds.intersects(vehicule.getExpandedBounds(10.0f))) {
-                return false; // Collision détectée
-            }
-        }
-
-        // Si aucune des conditions ci-dessus n'est remplie, le véhicule peut tourner à gauche
-        return true;
-    }
-
-    //Fonction utilisé nul part
-    bool Vehicule::CanTurnRight(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab) {
-	    return false;
-    }
-
-    //extern std::mutex traffic_light_mutex; // Assurez-vous que le mutex est accessible ici
-
     bool Vehicule::CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex) {
         sf::FloatRect expandedBounds = getExpandedBounds(2.5f);
+        sf::FloatRect frontHitbox = getFrontHitbox(1.0f);
 
         // Vérifier les feux de signalisation
         {
             std::lock_guard<std::mutex> lock(traffic_light_mutex);
 
             for (auto& feu : FeuTab) {
-                if (expandedBounds.intersects(feu->getGlobalBounds())) {
+                if (frontHitbox.intersects(feu->getGlobalBounds())) {
                     if (feu->get_traffic_color() == Traffic_color::red) {
+                        std::cout << "Véhicule arrêté par un feu rouge." << std::endl;
                         return false;
                     }
                     else if (feu->get_traffic_color() == Traffic_color::orange) {
+                        std::cout << "Véhicule ralentit par un feu orange." << std::endl;
                         SpeedDown();
                         return true;
                     }
                     else if (feu->get_traffic_color() == Traffic_color::green) {
                         // Si le feu est vert, vérifier les véhicules devant
                         for (auto& vehicule : Vehicules) {
-                            if (this != &vehicule && expandedBounds.intersects(vehicule.getExpandedBounds(2.5f))) {
-                                if (_speed == 0 && vehicule._speed == 0) {
-                                    if (_Patience > vehicule._Patience) {
-                                        vehicule.SpeedDown();
-                                        return true;
-                                    }
-                                    else {
-                                        SpeedDown();
-                                        return false;
-                                    }
-                                }
+                            if (this != &vehicule && frontHitbox.intersects(vehicule.getExpandedBounds(0.5f))) {
+                                std::cout << "Collision potentielle détectée avec un autre véhicule.A" << std::endl;
+
                                 return false; // Collision détectée
+                                }
                             }
                         }
                         return true; // Aucun obstacle détecté
                     }
                 }
             }
-        }
 
         // Vérifier les véhicules devant
         for (auto& vehicule : Vehicules) {
-            if (this != &vehicule && expandedBounds.intersects(vehicule.getExpandedBounds(2.5f))) {
+            if (this != &vehicule && frontHitbox.intersects(vehicule.getFrontHitbox(50.0f))) {
+                std::cout << "Collision potentielle détectée avec un autre véhicule.B" << std::endl;
                 if (_speed == 0 && vehicule._speed == 0) {
                     if (_Patience > vehicule._Patience) {
                         vehicule.SpeedDown();
@@ -256,35 +225,29 @@
         return bounds;
     }
 
-    //----------------------------------------------------------------
-
-    //Fonction utilisé nul part
-    void Vehicule::drawBoundingBox(sf::RenderWindow& window) {
+    sf::FloatRect Vehicule::getFrontHitbox(float length) {
         sf::FloatRect bounds = _Sprite.getGlobalBounds();
-        sf::RectangleShape boundingBox;
-        boundingBox.setPosition(bounds.left, bounds.top);
-        boundingBox.setSize(sf::Vector2f(bounds.width, bounds.height));
-        boundingBox.setFillColor(sf::Color::Transparent);
-        boundingBox.setOutlineColor(sf::Color::Red);
-        boundingBox.setOutlineThickness(1.0f);
-        window.draw(boundingBox);
-    }
+        sf::FloatRect frontHitbox;
 
-    //Fonction utilisé nul part
-    void Vehicule::drawDetectionSquare(sf::RenderWindow& window, std::vector<Vehicule>& Vehicules) {
-        // Définir la taille du carré de détection (par exemple, 100x100)
-        float detectionSize = 100.0f;
+        switch (_direction) {
+        case 0: // Droite
+            frontHitbox = sf::FloatRect(bounds.left + bounds.width, bounds.top, length, bounds.height);
+            break;
+        case 1: // Bas
+            frontHitbox = sf::FloatRect(bounds.left, bounds.top + bounds.height, bounds.width, length);
+            break;
+        case 2: // Gauche
+            frontHitbox = sf::FloatRect(bounds.left - length, bounds.top, length, bounds.height);
+            break;
+        case 3: // Haut
+            frontHitbox = sf::FloatRect(bounds.left, bounds.top - length, bounds.width, length);
+            break;
+        default:
+            frontHitbox = bounds;
+            break;
+        }
 
-        // Créer un carré pour représenter la zone de détection
-        sf::RectangleShape detectionSquare;
-        detectionSquare.setPosition(_x - detectionSize / 2, _y - detectionSize / 2); // Positionner le carré autour du véhicule
-        detectionSquare.setSize(sf::Vector2f(detectionSize, detectionSize)); // Définir la taille du carré
-        detectionSquare.setFillColor(sf::Color::Transparent); // Rendre le carré transparent
-        detectionSquare.setOutlineColor(sf::Color::Red); // Définir la couleur de la bordure en rouge
-        detectionSquare.setOutlineThickness(1.0f); // Définir l'épaisseur de la bordure
-
-        // Dessiner le carré sur la fenêtre
-        window.draw(detectionSquare);
+        return frontHitbox;
     }
 
     //----------------------------------------------------------------
@@ -334,13 +297,11 @@
                         }
                     }
                 }
-                std::cout << "x :" << _x << "y :" << _y << std::endl;
             }
 
             else {
 
                 if (_currentDirectionIndex + 1 < _directions.size()) {
-                    std::cout << "A" << std::endl;
                     _currentDirectionIndex++;
                     determinePath(_directions[_currentDirectionIndex]);
                 }
@@ -483,5 +444,4 @@
 
     bool Vehicule::operator==(const Vehicule& other) const {
         return this == &other;
-	    //return _x == other._x && _y == other._y && _angle == other._angle && _direction == other._direction;
     }

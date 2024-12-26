@@ -124,6 +124,9 @@ void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTe
 
 
 int main() {
+
+    int back = true;
+
 	// Initialisation des textures
 	sf::Texture carTexture;
     if (!carTexture.loadFromFile("C:/Program Files/SFML/img/car.png")) {
@@ -152,23 +155,19 @@ int main() {
         std::cout << "Texture du velo chargée avec succès." << std::endl;
     }
 
-
-    /*
     // Charger l'image de fond
     sf::Texture backgroundTexture;
     if (!backgroundTexture.loadFromFile("C:/Program Files/SFML/img/background.png")) {
         std::cerr << "Erreur: Impossible de charger la texture de fond." << std::endl;
-        return -1; // Ou toute autre action appropriée en cas d'erreur
+        return back = false;
     }
     else {
         std::cout << "Texture de fond chargée avec succès." << std::endl;
     }
 
-
     // Créer un sprite pour l'image de fond
     sf::Sprite backgroundSprite;
     backgroundSprite.setTexture(backgroundTexture);
-    */
 
 	// Initialisation des véhicules
     std::vector<Vehicule> vehicules;
@@ -197,6 +196,8 @@ int main() {
     Traffic_light traffic_light_slave1{ Traffic_color::green, sf::Vector2f(525, 675) };
     Traffic_light traffic_light_master2{ Traffic_color::red, sf::Vector2f(600, 525) };
     Traffic_light traffic_light_master3{ Traffic_color::red, sf::Vector2f(600, 475) };
+    Traffic_light traffic_light_master4{ Traffic_color::red, sf::Vector2f(775, 525) };
+    Traffic_light traffic_light_master5{ Traffic_color::red, sf::Vector2f(775, 475) };
     Traffic_light traffic_light_slave2{ Traffic_color::green, sf::Vector2f(425, 425) };
     Traffic_light traffic_light_slave3{ Traffic_color::green, sf::Vector2f(375, 425) };
     Traffic_light traffic_light_slave4{ Traffic_color::green, sf::Vector2f(425, 250) };
@@ -204,21 +205,23 @@ int main() {
 
     // Ajout des feux au vecteur FeuTab
     std::vector<Traffic_light*> FeuTab = {
-        &traffic_light_master,
-        &traffic_light_master1,
-        &traffic_light_slave,
-        &traffic_light_slave1,
-        &traffic_light_master2,
-        &traffic_light_master3,
-        &traffic_light_slave2,
-        &traffic_light_slave3,
-        &traffic_light_slave4,
-        &traffic_light_slave5
+        &traffic_light_master, // FeuTab[0]
+        &traffic_light_master1, // FeuTab[1]
+        &traffic_light_slave, // FeuTab[2]
+        &traffic_light_slave1, // FeuTab[3]
+        &traffic_light_master2, // FeuTab[4]
+        &traffic_light_master3, // FeuTab[5]
+		&traffic_light_master4, // FeuTab[6]
+		&traffic_light_master5, // FeuTab[7]
+        &traffic_light_slave2, // FeuTab[8]
+        &traffic_light_slave3, // FeuTab[9]
+        &traffic_light_slave4, // FeuTab[10]
+        &traffic_light_slave5 // FeuTab[11]
     };
 
     std::vector<std::vector<Traffic_light*>> phases;
-    phases.push_back({ FeuTab[2], FeuTab[3], FeuTab[6], FeuTab[7], FeuTab[8], FeuTab[9] });// Phase 1 : Feux verticaux (nord-sud)
-    phases.push_back({ FeuTab[0], FeuTab[1], FeuTab[4], FeuTab[5] });// Phase 2 : Feux horizontaux (est-ouest)
+    phases.push_back({ FeuTab[2], FeuTab[3], FeuTab[8], FeuTab[9], FeuTab[10], FeuTab[11] });// Phase 1 : Feux verticaux (nord-sud)
+    phases.push_back({ FeuTab[0], FeuTab[1], FeuTab[4], FeuTab[5], FeuTab[6], FeuTab[7] });// Phase 2 : Feux horizontaux (est-ouest)
 
     std::stop_source stopping;
     std::jthread traffic_light_thread(run_traffic_light_multiple, std::ref(FeuTab), std::ref(phases), std::ref(traffic_light_mutex), stopping.get_token());
@@ -236,13 +239,6 @@ int main() {
     sf::Vertex MG[] = { sf::Vertex(sf::Vector2f(0, 550)), sf::Vertex(sf::Vector2f(350, 550)) };
 	sf::Vertex CBG1[] = { sf::Vertex(sf::Vector2f(0, 650)), sf::Vertex(sf::Vector2f(350, 650)) };
     sf::Vertex CBG2[] = { sf::Vertex(sf::Vector2f(350, 650)), sf::Vertex(sf::Vector2f(350, 1000)) };
-
-    sf::Vertex DVG[] = { sf::Vertex(sf::Vector2f(0, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(425, 575), sf::Color::Magenta) };
-    sf::Vertex VGC1[] = { sf::Vertex(sf::Vector2f(425, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(1000, 575), sf::Color::Magenta) };
-    sf::Vertex VGC2[] = { sf::Vertex(sf::Vector2f(425, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(425, 1000), sf::Color::Magenta) };
-    sf::Vertex VGC3[] = { sf::Vertex(sf::Vector2f(475, 575), sf::Color::Magenta), sf::Vertex(sf::Vector2f(475, 0), sf::Color::Magenta) };
-
-    sf::Vertex DBG[] = { sf::Vertex(sf::Vector2f(0, 625), sf::Color::Cyan), sf::Vertex(sf::Vector2f(375, 625), sf::Color::Cyan) };
 
 	sf::Vertex MB[] = { sf::Vertex(sf::Vector2f(450, 650)), sf::Vertex(sf::Vector2f(450, 1000)) };
     sf::Vertex CBD1[] = { sf::Vertex(sf::Vector2f(550, 650)), sf::Vertex(sf::Vector2f(550, 1000)) };
@@ -272,7 +268,7 @@ int main() {
         
         float deltaTime = clock.restart().asSeconds();
 
-        if (vehicleSpawnClock.getElapsedTime().asSeconds() > 4.0f) {
+        if (vehicleSpawnClock.getElapsedTime().asSeconds() > 10.0f) {
             generateRandomVehicles(vehicules, carTexture, busTexture, veloTexture);
             vehicleSpawnClock.restart();
         }
@@ -292,29 +288,19 @@ int main() {
         // Dessiner la fenêtre
         window.clear(sf::Color::Black);
 
-        //window.draw(backgroundSprite);
+        window.draw(backgroundSprite);
 
         window.draw(MG, 2, sf::Lines);
-		window.draw(CBG1, 2, sf::Lines);
-		window.draw(CBG2, 2, sf::Lines);
-
-        window.draw(DVG, 2, sf::Lines);
-		window.draw(VGC1, 2, sf::Lines);
-		window.draw(VGC2, 2, sf::Lines);
-		window.draw(VGC3, 2, sf::Lines);
-
-        window.draw(DBG, 2, sf::Lines);
-
-		window.draw(MB, 2, sf::Lines);
-		window.draw(CBD1, 2, sf::Lines);
-		window.draw(CBD2, 2, sf::Lines);
-
-		window.draw(MD, 2, sf::Lines);
-		window.draw(CHD1, 2, sf::Lines);
-		window.draw(CHD2, 2, sf::Lines);
-
-		window.draw(MH, 2, sf::Lines);
-		window.draw(CHG1, 2, sf::Lines);
+        window.draw(CBG1, 2, sf::Lines);
+        window.draw(CBG2, 2, sf::Lines);
+        window.draw(MB, 2, sf::Lines);
+        window.draw(CBD1, 2, sf::Lines);
+        window.draw(CBD2, 2, sf::Lines);
+        window.draw(MD, 2, sf::Lines);
+        window.draw(CHD1, 2, sf::Lines);
+        window.draw(CHD2, 2, sf::Lines);
+        window.draw(MH, 2, sf::Lines);
+        window.draw(CHG1, 2, sf::Lines);
         window.draw(CHG2, 2, sf::Lines);
        
         for (const auto& light : FeuTab) {

@@ -25,16 +25,12 @@ public:
     ~Vehicule();
 
     int getVehiculeType();
-
-    bool CanTurnLeft(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab);
-    bool CanTurnRight(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab);
+    
     bool CanGoForward(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex);
     bool isOutOfBounds(int windowWidth, int windowHeight)const;
 
     sf::FloatRect getExpandedBounds(float extraLength);
-
-    void drawBoundingBox(sf::RenderWindow& window);
-    void drawDetectionSquare(sf::RenderWindow& window, std::vector<Vehicule>& Vehicules);
+    sf::FloatRect getFrontHitbox(float length);
 
 	void move(std::vector<Vehicule>& Vehicules, std::vector<Traffic_light*>& FeuTab, std::mutex& traffic_light_mutex, float deltaTime);
     void SpeedUp();
