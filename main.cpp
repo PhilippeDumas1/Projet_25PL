@@ -236,22 +236,6 @@ int main() {
 
     std::jthread write_traffic_light(print_traffic_light, std::ref(traffic_light_master), std::ref(traffic_light_slave), stopping.get_token());
 
-    sf::Vertex MG[] = { sf::Vertex(sf::Vector2f(0, 550)), sf::Vertex(sf::Vector2f(350, 550)) };
-	sf::Vertex CBG1[] = { sf::Vertex(sf::Vector2f(0, 650)), sf::Vertex(sf::Vector2f(350, 650)) };
-    sf::Vertex CBG2[] = { sf::Vertex(sf::Vector2f(350, 650)), sf::Vertex(sf::Vector2f(350, 1000)) };
-
-	sf::Vertex MB[] = { sf::Vertex(sf::Vector2f(450, 650)), sf::Vertex(sf::Vector2f(450, 1000)) };
-    sf::Vertex CBD1[] = { sf::Vertex(sf::Vector2f(550, 650)), sf::Vertex(sf::Vector2f(550, 1000)) };
-    sf::Vertex CBD2[] = { sf::Vertex(sf::Vector2f(550, 650)), sf::Vertex(sf::Vector2f(1000, 650)) };
-
-    sf::Vertex MD[] = { sf::Vertex(sf::Vector2f(550, 550)), sf::Vertex(sf::Vector2f(1000, 550)) };
-    sf::Vertex CHD1[] = { sf::Vertex(sf::Vector2f(550, 450)), sf::Vertex(sf::Vector2f(1000, 450)) };
-	sf::Vertex CHD2[] = { sf::Vertex(sf::Vector2f(550, 0)), sf::Vertex(sf::Vector2f(550, 450)) };
-
-    sf::Vertex MH[] = { sf::Vertex(sf::Vector2f(450, 0)), sf::Vertex(sf::Vector2f(450, 450)) };
-    sf::Vertex CHG1[] = { sf::Vertex(sf::Vector2f(350, 0)), sf::Vertex(sf::Vector2f(350, 450)) };
-	sf::Vertex CHG2[] = { sf::Vertex(sf::Vector2f(0, 450)), sf::Vertex(sf::Vector2f(350, 450)) };
-
     bool running = true;
 
     sf::Clock clock;
@@ -289,19 +273,6 @@ int main() {
         window.clear(sf::Color::Black);
 
         window.draw(backgroundSprite);
-
-        window.draw(MG, 2, sf::Lines);
-        window.draw(CBG1, 2, sf::Lines);
-        window.draw(CBG2, 2, sf::Lines);
-        window.draw(MB, 2, sf::Lines);
-        window.draw(CBD1, 2, sf::Lines);
-        window.draw(CBD2, 2, sf::Lines);
-        window.draw(MD, 2, sf::Lines);
-        window.draw(CHD1, 2, sf::Lines);
-        window.draw(CHD2, 2, sf::Lines);
-        window.draw(MH, 2, sf::Lines);
-        window.draw(CHG1, 2, sf::Lines);
-        window.draw(CHG2, 2, sf::Lines);
        
         for (const auto& light : FeuTab) {
             sf::CircleShape lightShape(radius);

@@ -116,7 +116,7 @@
         }
         else if (_VehiculeType == Bus) {
             _Patience = 2;
-            _Sprite.setScale(0.2f, 0.2f); // Échelle plus grande pour le bus
+            _Sprite.setScale(0.15f, 0.15f); // Échelle pour le bus
             setPos(_x, _y);
             setAngle(_angle);
             _Sprite.setPosition(_x, _y);
@@ -124,7 +124,7 @@
         }
         else if (_VehiculeType == Bike) {
             _Patience = 0;
-            _Sprite.setScale(0.10f, 0.10f); // Échelle plus petite pour le vélo
+            _Sprite.setScale(0.10f, 0.10f); // Échelle pour le vélo
             setPos(_x, _y);
             setAngle(_angle);
             _Sprite.setPosition(_x, _y);
