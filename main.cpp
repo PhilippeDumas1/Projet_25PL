@@ -26,13 +26,13 @@ enum SpawnPoint {
 };
 
 
-void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTexture, sf::Texture& busTexture) {
+void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTexture, sf::Texture& busTexture, sf::Texture& veloTexture) {
     // Générateur aléatoire pour les positions de spawn et directions
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> spawnDist(0, 3);   // Pour DH, DG, DD, DB
     std::uniform_int_distribution<> directionDist(0, 7); // Directions possibles de 0 à 7
-    std::uniform_int_distribution<> typeDist(1, 2);    // Exemple: type de véhicule (0, 1, ou 2)
+    std::uniform_int_distribution<> typeDist(1, 3);    // Exemple: type de véhicule (0, 1, ou 2)
 
     // Générer un spawn aléatoire
     int spawn = spawnDist(gen);
@@ -85,9 +85,32 @@ void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTe
             break;
         }
     }
+    else if (type == 3) {
+        switch (spawn) {
+        case 0: // DH
+            Ddirection = 14;
+            spawn = DH;
+            break;
+        case 1: // DG
+            Ddirection = 12;
+            spawn = DG;
+            break;
+        case 2: // DD
+            Ddirection = 16;
+            spawn = DD;
+            break;
+        case 3: // DB 
+            Ddirection = 18;  // Exemple par défaut
+            spawn = DB;
+            break;
+        default:
+            break;
+        }
+    }
 
     // Créer un véhicule avec les propriétés générées
-    Vehicule newVehicle(spawn, direction, type, type == 1 ? carTexture : busTexture);
+    sf::Texture& vehicleTexture = type == 1 ? carTexture : (type == 2 ? busTexture : veloTexture);
+    Vehicule newVehicle(spawn, direction, type, vehicleTexture);
     newVehicle.setDirections({ Ddirection }); // Assigner la direction
 
     // Ajouter le véhicule au vecteur
@@ -118,6 +141,15 @@ int main() {
     }
     else {
         std::cout << "Texture du bus chargée avec succès." << std::endl;
+    }
+
+    sf::Texture veloTexture;
+    if (!veloTexture.loadFromFile("C:/Program Files/SFML/img/velo.png")) {
+        std::cerr << "Erreur: Impossible de charger la texture du velo." << std::endl;
+        return -1; // Ou toute autre action appropriée en cas d'erreur
+    }
+    else {
+        std::cout << "Texture du velo chargée avec succès." << std::endl;
     }
 
 
@@ -161,12 +193,12 @@ int main() {
 
     Traffic_light traffic_light_master{ Traffic_color::green, sf::Vector2f(330, 575) };
     Traffic_light traffic_light_master1{ Traffic_color::green, sf::Vector2f(330, 625) };
-    Traffic_light traffic_light_slave{ Traffic_color::red, sf::Vector2f(475, 650) };
-    Traffic_light traffic_light_slave1{ Traffic_color::red, sf::Vector2f(525, 650) };
+    Traffic_light traffic_light_slave{ Traffic_color::red, sf::Vector2f(475, 700) };
+    Traffic_light traffic_light_slave1{ Traffic_color::red, sf::Vector2f(525, 700) };
     Traffic_light traffic_light_master2{ Traffic_color::green, sf::Vector2f(600, 525) };
     Traffic_light traffic_light_master3{ Traffic_color::green, sf::Vector2f(600, 475) };
-    Traffic_light traffic_light_slave2{ Traffic_color::red, sf::Vector2f(425, 450) };
-    Traffic_light traffic_light_slave3{ Traffic_color::red, sf::Vector2f(375, 450) };
+    Traffic_light traffic_light_slave2{ Traffic_color::red, sf::Vector2f(425, 420) };
+    Traffic_light traffic_light_slave3{ Traffic_color::red, sf::Vector2f(375, 420) };
     Traffic_light traffic_light_slave4{ Traffic_color::red, sf::Vector2f(425, 250) };
     Traffic_light traffic_light_slave5{ Traffic_color::red, sf::Vector2f(375, 250) };
 
@@ -241,7 +273,7 @@ int main() {
         float deltaTime = clock.restart().asSeconds();
 
         if (vehicleSpawnClock.getElapsedTime().asSeconds() > 4.0f) {
-            generateRandomVehicles(vehicules, carTexture, busTexture);
+            generateRandomVehicles(vehicules, carTexture, busTexture, veloTexture);
             vehicleSpawnClock.restart();
         }
 

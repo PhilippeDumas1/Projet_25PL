@@ -61,7 +61,7 @@
             switch (_VehiculeType) {
             case 1: _x = 0; _y = 575; break; //Voiture
             case 2: _x = 0; _y = 625; break; //Bus
-		    case 3: _x = 0; _y = 0;   break; //Vélo a faire
+		    case 3: _x = 0; _y = 625;   break; //Vélo 
             default:_x = 0; _y = 0;   break;
             }
             _angle = 0;
@@ -70,7 +70,7 @@
             switch (_VehiculeType) {
             case 1: _x = 425; _y = 0; break; // Voiture
             case 2: _x = 375; _y = 0; break; // Bus
-            case 3: _x = 550; _y = 0; break; // Vélo
+            case 3: _x = 375; _y = 0; break; // Vélo
             default: _x = 0; _y = 0; break;
             }
             _angle = 90; // Déplacement vers le bas
@@ -79,7 +79,7 @@
             switch (_VehiculeType) {
             case 1: _x = 1000; _y = 525; break; // Voiture
             case 2: _x = 1000; _y = 475; break; // Bus
-            case 3: _x = 1000; _y = 425; break; // Vélo
+            case 3: _x = 1000; _y = 475; break; // Vélo
             default: _x = 0; _y = 0; break;
             }
             _angle = 180; // Déplacement vers la gauche
@@ -88,7 +88,7 @@
             switch (_VehiculeType) {
             case 1: _x = 475; _y = 1000; break; // Voiture
             case 2: _x = 525; _y = 1000; break; // Bus
-            case 3: _x = 550; _y = 1000; break; // Vélo
+            case 3: _x = 525; _y = 1000; break; // Vélo
             default: _x = 0; _y = 0; break;
             }
             _angle = 270; // Déplacement vers le haut
@@ -125,7 +125,11 @@
             _Sprite.setRotation(_angle);
         }
         else if (_VehiculeType == Bike) {
-            _Sprite.setScale(0.4f, 0.4f); // Échelle plus petite pour le vélo
+            _Sprite.setScale(0.10f, 0.10f); // Échelle plus petite pour le vélo
+            setPos(_x, _y);
+            setAngle(_angle);
+            _Sprite.setPosition(_x, _y);
+            _Sprite.setRotation(_angle);
         }
         
         sf::FloatRect bounds = _Sprite.getLocalBounds();
