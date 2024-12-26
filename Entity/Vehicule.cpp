@@ -118,7 +118,7 @@
             _Sprite.setRotation(_angle);
         }
         else if (_VehiculeType == Bus) {
-            _Sprite.setScale(0.5f, 0.5f); // Échelle plus grande pour le bus
+            _Sprite.setScale(0.15f, 0.15f); // Échelle plus grande pour le bus
             setPos(_x, _y);
             setAngle(_angle);
             _Sprite.setPosition(_x, _y);

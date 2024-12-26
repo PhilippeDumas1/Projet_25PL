@@ -25,41 +25,69 @@ enum SpawnPoint {
 	DB, // Début bas
 };
 
-/*
-void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTexture) {
+
+void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTexture, sf::Texture& busTexture) {
     // Générateur aléatoire pour les positions de spawn et directions
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> spawnDist(0, 3);   // Pour DH, DG, DD, DB
     std::uniform_int_distribution<> directionDist(0, 7); // Directions possibles de 0 à 7
-    //std::uniform_int_distribution<> typeDist(0, 2);    // Exemple: type de véhicule (0, 1, ou 2)
+    std::uniform_int_distribution<> typeDist(1, 2);    // Exemple: type de véhicule (0, 1, ou 2)
 
     // Générer un spawn aléatoire
     int spawn = spawnDist(gen);
     int direction = directionDist(gen);  // Direction aléatoire
     int Ddirection = 0;
-    int type = 1;
+    int type = typeDist(gen);
 
     // Définir Ddirection en fonction du spawn
-    switch (spawn) {
-    case 0: // DH
-        Ddirection = 3;
-        break;
-    case 1: // DG
-        Ddirection = 1;
-        break;
-    case 2: // DD
-        Ddirection = 7;
-        break;
-    case 3: // DB 
-        Ddirection = 10;  // Exemple par défaut
-        break;
-    default:
-        break;
+    if (type == 1) {
+        switch (spawn) {
+        case 0: // DH
+            Ddirection = 3;
+            spawn = DH;
+            break;
+        case 1: // DG
+            Ddirection = 1;
+            spawn = DG;
+            break;
+        case 2: // DD
+            Ddirection = 7;
+            spawn = DD;
+            break;
+        case 3: // DB 
+            Ddirection = 10;  // Exemple par défaut
+            spawn = DB;
+            break;
+        default:
+            break;
+        }
+    }
+    else if (type == 2) {
+        switch (spawn) {
+        case 0: // DH
+            Ddirection = 14;
+            spawn = DH;
+            break;
+        case 1: // DG
+            Ddirection = 12;
+            spawn = DG;
+            break;
+        case 2: // DD
+            Ddirection = 16;
+            spawn = DD;
+            break;
+        case 3: // DB 
+            Ddirection = 18;  // Exemple par défaut
+            spawn = DB;
+            break;
+        default:
+            break;
+        }
     }
 
     // Créer un véhicule avec les propriétés générées
-    Vehicule newVehicle(spawn, direction, type, carTexture);
+    Vehicule newVehicle(spawn, direction, type, type == 1 ? carTexture : busTexture);
     newVehicle.setDirections({ Ddirection }); // Assigner la direction
 
     // Ajouter le véhicule au vecteur
@@ -70,7 +98,7 @@ void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTe
         << ", type=" << type
         << ", Ddirection=" << Ddirection << std::endl;
 };
-*/
+
 
 int main() {
 	// Initialisation des textures
@@ -131,12 +159,12 @@ int main() {
 
     std::mutex traffic_light_mutex;
 
-    Traffic_light traffic_light_master{ Traffic_color::green, sf::Vector2f(350, 575) };
-    Traffic_light traffic_light_master1{ Traffic_color::green, sf::Vector2f(350, 625) };
+    Traffic_light traffic_light_master{ Traffic_color::green, sf::Vector2f(330, 575) };
+    Traffic_light traffic_light_master1{ Traffic_color::green, sf::Vector2f(330, 625) };
     Traffic_light traffic_light_slave{ Traffic_color::red, sf::Vector2f(475, 650) };
     Traffic_light traffic_light_slave1{ Traffic_color::red, sf::Vector2f(525, 650) };
-    Traffic_light traffic_light_master2{ Traffic_color::green, sf::Vector2f(550, 525) };
-    Traffic_light traffic_light_master3{ Traffic_color::green, sf::Vector2f(550, 475) };
+    Traffic_light traffic_light_master2{ Traffic_color::green, sf::Vector2f(600, 525) };
+    Traffic_light traffic_light_master3{ Traffic_color::green, sf::Vector2f(600, 475) };
     Traffic_light traffic_light_slave2{ Traffic_color::red, sf::Vector2f(425, 450) };
     Traffic_light traffic_light_slave3{ Traffic_color::red, sf::Vector2f(375, 450) };
     Traffic_light traffic_light_slave4{ Traffic_color::red, sf::Vector2f(425, 250) };
@@ -213,7 +241,7 @@ int main() {
         float deltaTime = clock.restart().asSeconds();
 
         if (vehicleSpawnClock.getElapsedTime().asSeconds() > 4.0f) {
-            //generateRandomVehicles(vehicules, carTexture);
+            generateRandomVehicles(vehicules, carTexture, busTexture);
             vehicleSpawnClock.restart();
         }
 
