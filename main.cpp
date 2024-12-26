@@ -25,6 +25,7 @@ enum SpawnPoint {
 	DB, // Début bas
 };
 
+/*
 void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTexture) {
     // Générateur aléatoire pour les positions de spawn et directions
     std::random_device rd;
@@ -69,6 +70,7 @@ void generateRandomVehicles(std::vector<Vehicule>& vehicules, sf::Texture& carTe
         << ", type=" << type
         << ", Ddirection=" << Ddirection << std::endl;
 };
+*/
 
 int main() {
 	// Initialisation des textures
@@ -81,18 +83,31 @@ int main() {
 		std::cout << "Texture de la voiture chargée avec succès." << std::endl;
     }
 
+    // Charger l'image de fond
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("C:/Program Files/SFML/img/background.png")) {
+        std::cerr << "Erreur: Impossible de charger la texture de fond." << std::endl;
+        return -1; // Ou toute autre action appropriée en cas d'erreur
+    }
+    else {
+        std::cout << "Texture de fond chargée avec succès." << std::endl;
+    }
+
+    // Créer un sprite pour l'image de fond
+    sf::Sprite backgroundSprite;
+    backgroundSprite.setTexture(backgroundTexture);
+
 	// Initialisation des véhicules
     std::vector<Vehicule> vehicules;
     Vehicule newCar(DG, 0, 1, carTexture);
-    newCar.setDirections({ 1 }); // Assigner la direction spécifique
+    newCar.setDirections({ 0 }); // Assigner la direction spécifique
     vehicules.push_back(newCar);
     Vehicule newCar1(DH, 0, 1, carTexture);
     newCar1.setDirections({ 3 }); // Assigner la direction spécifique
-    vehicules.push_back(newCar1);
+   // vehicules.push_back(newCar1);
     Vehicule newCar2(DD, 0, 1, carTexture);
     newCar2.setDirections({ 7 }); // Assigner la direction spécifique
-    vehicules.push_back(newCar2);
-
+    //vehicules.push_back(newCar2);
 
     std::mutex traffic_light_mutex;
 
@@ -178,7 +193,7 @@ int main() {
         float deltaTime = clock.restart().asSeconds();
 
         if (vehicleSpawnClock.getElapsedTime().asSeconds() > 4.0f) {
-            generateRandomVehicles(vehicules, carTexture);
+            //generateRandomVehicles(vehicules, carTexture);
             vehicleSpawnClock.restart();
         }
 
@@ -196,6 +211,8 @@ int main() {
 
         // Dessiner la fenêtre
         window.clear(sf::Color::Black);
+
+        window.draw(backgroundSprite);
 
         window.draw(MG, 2, sf::Lines);
 		window.draw(CBG1, 2, sf::Lines);

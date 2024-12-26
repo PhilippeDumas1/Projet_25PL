@@ -29,14 +29,14 @@
         setTexture(Skin);
 
         _paths = {
-            {0, {{sf::Vector2f(0, 575), sf::Vector2f(1100, 575)}}},//Chemin voiture Gauche
-            {1, {{sf::Vector2f(0, 575), sf::Vector2f(425, 575), sf::Vector2f(425, 1000)}}},
-            {2, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, 0)}}},
-            {3, {{sf::Vector2f(425, 0), sf::Vector2f(425, 1000)}}},//Chemin voitue Haut
-            {4, {{sf::Vector2f(425, 0), sf::Vector2f(425, 475), sf::Vector2f(0, 475)}}},
-            {5, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, 0)}}},
-            {6, {{sf::Vector2f(1000, 525), sf::Vector2f(0, 525)}}},//Chemin Voiture Droite
-            {7, {{sf::Vector2f(1000, 525), sf::Vector2f(425, 525), sf::Vector2f(425, 1000)}}},
+            {0, {{sf::Vector2f(0, 575), sf::Vector2f(1050, 575)}}},//Chemin voiture Gauche
+            {1, {{sf::Vector2f(0, 575), sf::Vector2f(425, 575), sf::Vector2f(425, 1050)}}},
+            {2, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, -50)}}},
+            {3, {{sf::Vector2f(425, 0), sf::Vector2f(425, 1050)}}},//Chemin voitue Haut
+            {4, {{sf::Vector2f(425, 0), sf::Vector2f(425, 475), sf::Vector2f(-50, 475)}}},
+            {5, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, -50)}}},
+            {6, {{sf::Vector2f(1000, 525), sf::Vector2f(-50, 525)}}},//Chemin Voiture Droite
+            {7, {{sf::Vector2f(1000, 525), sf::Vector2f(425, 525), sf::Vector2f(425, 1050)}}},
             {8, {{sf::Vector2f(1000, 450), sf::Vector2f(0, 450)}}},
             {9, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}},
             {10, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}},
@@ -176,7 +176,7 @@
 
             for (auto& feu : FeuTab) {
                 if (expandedBounds.intersects(feu->getGlobalBounds())) {
-                    std::cout << "Feu détecté: " << feu->get_traffic_color() << " à la position (" << feu->get_position().x << ", " << feu->get_position().y << ")" << std::endl;
+                    //std::cout << "Feu détecté: " << feu->get_traffic_color() << " à la position (" << feu->get_position().x << ", " << feu->get_position().y << ")" << std::endl;
                     if (feu->get_traffic_color() == Traffic_color::red) {
                         return false;
                     }else if (feu->get_traffic_color() == Traffic_color::orange) {
@@ -268,7 +268,7 @@
                 setPos(_x, _y);
                 _Sprite.setPosition(_x, _y);
 
-                if (std::abs(_x - target.x) < 1.0f && std::abs(_y - target.y) < 1.0f) {
+				if (std::abs(_x - target.x) < 5.0f && std::abs(_y - target.y) < 5.0f) {//Vérifie si le véhicule est proche de la cible
                     _currentPathIndex++;  //le véhicule atteint la fin d'un segment de chemin, il passe au segment suivant
 
                     if (_currentPathIndex < _currentPath[_currentDirectionIndex].points.size()) {
@@ -286,16 +286,19 @@
                         }
                     }
                 }
+                std::cout << "x :" << _x << "y :" << _y << std::endl;
             }
 
             else {
 
                 if (_currentDirectionIndex + 1 < _directions.size()) {
+                    std::cout << "A" << std::endl;
                     _currentDirectionIndex++;
                     determinePath(_directions[_currentDirectionIndex]);
                 }
                 else {
                     if (isOutOfBounds(WINDOW_SIZE_HORIZ, WINDOW_SIZE_VERTI)) {
+                        std::cout << "Véhicule OOB" << std::endl;
                         auto it = std::find(Vehicules.begin(), Vehicules.end(), *this);
                         if (it != Vehicules.end()) {
                             Vehicules.erase(it);
@@ -310,6 +313,7 @@
             SpeedDown();
         }
     }
+
 
     //----------------------------------------------------------------
 
