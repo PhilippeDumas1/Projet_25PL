@@ -29,6 +29,7 @@
         setTexture(Skin);
 
         _paths = {
+            //Chemin des voitures
             {0, {{sf::Vector2f(0, 575), sf::Vector2f(1050, 575)}}},//Chemin voiture Gauche
             {1, {{sf::Vector2f(0, 575), sf::Vector2f(425, 575), sf::Vector2f(425, 1050)}}},
             {2, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, -50)}}},
@@ -37,10 +38,22 @@
             {5, {{sf::Vector2f(0, 575), sf::Vector2f(475, 575), sf::Vector2f(475, -50)}}},
             {6, {{sf::Vector2f(1000, 525), sf::Vector2f(-50, 525)}}},//Chemin Voiture Droite
             {7, {{sf::Vector2f(1000, 525), sf::Vector2f(425, 525), sf::Vector2f(425, 1050)}}},
-            {8, {{sf::Vector2f(1000, 450), sf::Vector2f(0, 450)}}},
-            {9, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}},
-            {10, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}},
-            {11, {{sf::Vector2f(450, 1000), sf::Vector2f(450, 0)}}}
+            {8, {{sf::Vector2f(1000, 525), sf::Vector2f(475, 525), sf::Vector2f(475, -50)}}},
+            {9, {{sf::Vector2f(475, 1000), sf::Vector2f(475, -50)}}},//Chemin Voiture Bas
+            {10, {{sf::Vector2f(475, 1000), sf::Vector2f(475, 525), sf::Vector2f(-50, 525)}}},
+            {11, {{sf::Vector2f(475, 1000), sf::Vector2f(475, 575), sf::Vector2f(1050, 575)}}},
+            //Chemin des Bus
+			{12, {{sf::Vector2f(0, 625), sf::Vector2f(1050, 625)}}},//Chemin Bus Gauche
+            {13, {{sf::Vector2f(0, 625), sf::Vector2f(375, 625), sf::Vector2f(375, 1050)}}},
+            {14, {{sf::Vector2f(375, 0), sf::Vector2f(375, 1050)}}},//Chemin Bus Haut
+            {15, {{sf::Vector2f(375, 0), sf::Vector2f(375, 475), sf::Vector2f(-50, 475)}}},
+			{16, {{sf::Vector2f(1000, 475), sf::Vector2f(-50, 475)}}},//Chemin Bus Droite
+			{17, {{sf::Vector2f(1000, 475), sf::Vector2f(525, 475), sf::Vector2f(525, -50)}}},
+			{18, {{sf::Vector2f(525, 1000), sf::Vector2f(525, -50)}}},//Chemin Bus Bas
+            {19, {{sf::Vector2f(525, 1000), sf::Vector2f(525, 625), sf::Vector2f(-50, 625)}}}
+
+
+
         };
 
         switch (spawn) {
@@ -56,7 +69,7 @@
         case DH:
             switch (_VehiculeType) {
             case 1: _x = 425; _y = 0; break; // Voiture
-            case 2: _x = 500; _y = 0; break; // Bus
+            case 2: _x = 375; _y = 0; break; // Bus
             case 3: _x = 550; _y = 0; break; // Vélo
             default: _x = 0; _y = 0; break;
             }
@@ -65,16 +78,16 @@
         case DD:
             switch (_VehiculeType) {
             case 1: _x = 1000; _y = 525; break; // Voiture
-            case 2: _x = 1000; _y = 500; break; // Bus
-            case 3: _x = 1000; _y = 475; break; // Vélo
+            case 2: _x = 1000; _y = 475; break; // Bus
+            case 3: _x = 1000; _y = 425; break; // Vélo
             default: _x = 0; _y = 0; break;
             }
             _angle = 180; // Déplacement vers la gauche
             break;
         case DB:
             switch (_VehiculeType) {
-            case 1: _x = 500; _y = 1000; break; // Voiture
-            case 2: _x = 500; _y = 1000; break; // Bus
+            case 1: _x = 475; _y = 1000; break; // Voiture
+            case 2: _x = 525; _y = 1000; break; // Bus
             case 3: _x = 550; _y = 1000; break; // Vélo
             default: _x = 0; _y = 0; break;
             }
@@ -97,12 +110,24 @@
                 << " direction:" << _direction << std::endl;
         }
 
-        _Sprite.setScale(sf::Vector2f(0.5, 0.5));
-        setPos(_x, _y);
-        setAngle(_angle);
-        _Sprite.setPosition(_x, _y);
-        _Sprite.setRotation(_angle);
-
+        if (_VehiculeType == Car) {
+            _Sprite.setScale(0.5f, 0.5f); // Échelle pour la voiture
+            setPos(_x, _y);
+            setAngle(_angle);
+            _Sprite.setPosition(_x, _y);
+            _Sprite.setRotation(_angle);
+        }
+        else if (_VehiculeType == Bus) {
+            _Sprite.setScale(0.5f, 0.5f); // Échelle plus grande pour le bus
+            setPos(_x, _y);
+            setAngle(_angle);
+            _Sprite.setPosition(_x, _y);
+            _Sprite.setRotation(_angle);
+        }
+        else if (_VehiculeType == Bike) {
+            _Sprite.setScale(0.4f, 0.4f); // Échelle plus petite pour le vélo
+        }
+        
         sf::FloatRect bounds = _Sprite.getLocalBounds();
         _Sprite.setOrigin(bounds.width / 2, bounds.height / 2);
 
@@ -268,7 +293,7 @@
                 setPos(_x, _y);
                 _Sprite.setPosition(_x, _y);
 
-				if (std::abs(_x - target.x) < 5.0f && std::abs(_y - target.y) < 5.0f) {//Vérifie si le véhicule est proche de la cible
+				if (std::abs(_x - target.x) < 1.0f && std::abs(_y - target.y) < 1.0f) {//Vérifie si le véhicule est proche de la cible
                     _currentPathIndex++;  //le véhicule atteint la fin d'un segment de chemin, il passe au segment suivant
 
                     if (_currentPathIndex < _currentPath[_currentDirectionIndex].points.size()) {

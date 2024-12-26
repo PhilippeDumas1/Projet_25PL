@@ -83,6 +83,17 @@ int main() {
 		std::cout << "Texture de la voiture chargée avec succès." << std::endl;
     }
 
+    sf::Texture busTexture;
+    if (!busTexture.loadFromFile("C:/Program Files/SFML/img/bus.png")) {
+        std::cerr << "Erreur: Impossible de charger la texture du Bus." << std::endl;
+        return -1; // Ou toute autre action appropriée en cas d'erreur
+    }
+    else {
+        std::cout << "Texture du bus chargée avec succès." << std::endl;
+    }
+
+
+    /*
     // Charger l'image de fond
     sf::Texture backgroundTexture;
     if (!backgroundTexture.loadFromFile("C:/Program Files/SFML/img/background.png")) {
@@ -93,21 +104,30 @@ int main() {
         std::cout << "Texture de fond chargée avec succès." << std::endl;
     }
 
+
     // Créer un sprite pour l'image de fond
     sf::Sprite backgroundSprite;
     backgroundSprite.setTexture(backgroundTexture);
+    */
 
 	// Initialisation des véhicules
     std::vector<Vehicule> vehicules;
     Vehicule newCar(DG, 0, 1, carTexture);
-    newCar.setDirections({ 0 }); // Assigner la direction spécifique
-    vehicules.push_back(newCar);
+    newCar.setDirections({ 2 });
+    //vehicules.push_back(newCar);
     Vehicule newCar1(DH, 0, 1, carTexture);
-    newCar1.setDirections({ 3 }); // Assigner la direction spécifique
-   // vehicules.push_back(newCar1);
+    newCar1.setDirections({ 3 });
+    // vehicules.push_back(newCar1);
     Vehicule newCar2(DD, 0, 1, carTexture);
-    newCar2.setDirections({ 7 }); // Assigner la direction spécifique
+    newCar2.setDirections({ 8 });
     //vehicules.push_back(newCar2);
+    Vehicule newCar3(DB, 0, 1, carTexture);
+    newCar3.setDirections({ 11 });
+    //vehicules.push_back(newCar3);
+
+    Vehicule newBus(DB, 0, 2, busTexture);
+    newBus.setDirections({ 18 });
+    vehicules.push_back(newBus);
 
     std::mutex traffic_light_mutex;
 
@@ -212,7 +232,7 @@ int main() {
         // Dessiner la fenêtre
         window.clear(sf::Color::Black);
 
-        window.draw(backgroundSprite);
+        //window.draw(backgroundSprite);
 
         window.draw(MG, 2, sf::Lines);
 		window.draw(CBG1, 2, sf::Lines);
